@@ -1,24 +1,16 @@
 from flask import Flask, request, jsonify
 import tensorflow as tf
-from tensorflow.keras.models import load_model
-from PIL import Image
 import numpy as np
+import matplotlib.pyplot as plt
+import os
+from PIL import Image
 import io
-import sys
-sys.stdout.reconfigure(encoding='utf-8')
 
 app = Flask(__name__)
 
-# Load your trained model
-model = load_model('static/model/guava-w-aug-esp32.h5')
+model = tf.keras.models.load_model('static/model/guava_model.keras')
 
-CLASS_NAMES = ['dot', 'healthy', 'mummification', 'rust']
-
-def preprocess_image(image):
-    image = image.resize((224, 224))
-    image = np.array(image) / 255.0
-    image = np.expand_dims(image, axis=0)
-    return image
+class_names = ['dot', 'healthy', 'mummification', 'rust']
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -30,17 +22,21 @@ def predict():
     if file.filename == '':
         return jsonify({'error': 'No selected file'}), 400
 
-    try:
-        image = Image.open(io.BytesIO(file.read()))
-        processed_image = preprocess_image(image)
+    img = Image.open(file.stream).convert('RGB')
+    img = img.resize((224, 224))
 
-        predictions = model.predict(processed_image)
-        predicted_class = CLASS_NAMES[np.argmax(predictions)]
+    img_array = tf.keras.utils.img_to_array(img)
+    img_array = np.expand_dims(img_array, axis=0)
 
-        return jsonify({'prediction': predicted_class}), 200
+    predictions = model.predict(img_array)
+    predicted_class = class_names[np.argmax(predictions[0])]
+    confidence = round(100 * (np.max(predictions[0])), 2)
 
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    return jsonify({
+        'filename': file.filename,
+        'predicted_class': predicted_class,
+        'confidence': confidence
+    })
 
 if __name__ == '__main__':
     app.run(debug=True)

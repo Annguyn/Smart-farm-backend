@@ -5,17 +5,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f1d9bdd8-956d-43d4-82e9-bd90d28788f0" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/dataSources.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/database.db" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/iot/sensor_reader.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/iot/watering_controller.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/model/guava.h5" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/model/guava_model.keras" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/model/my_model.keras" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/sub.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/SmartFarmBackend.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/SmartFarmBackend.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
     </list>
@@ -140,7 +129,8 @@
       <workItem from="1729646036446" duration="4110000" />
       <workItem from="1729674553612" duration="225000" />
       <workItem from="1729781567486" duration="2528000" />
-      <workItem from="1729784251876" duration="308000" />
+      <workItem from="1729784251876" duration="908000" />
+      <workItem from="1729916889085" duration="7398000" />
     </task>
     <servers />
   </component>
@@ -151,6 +141,6 @@
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/SmartFarmBackend$SmartFarmBackend.coverage" NAME="SmartFarmBackend Coverage Results" MODIFIED="1729783829416" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
+    <SUITE FILE_PATH="coverage/SmartFarmBackend$SmartFarmBackend.coverage" NAME="SmartFarmBackend Coverage Results" MODIFIED="1729784549667" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
   </component>
 </project>

@@ -1,16 +1,15 @@
 from flask import Flask, request, jsonify
 import tensorflow as tf
 import numpy as np
-import matplotlib.pyplot as plt
-import os
 from PIL import Image
-import io
+import requests
 
 app = Flask(__name__)
 
 model = tf.keras.models.load_model('static/model/guava_model.keras')
-
 class_names = ['dot', 'healthy', 'mummification', 'rust']
+
+ESP8266_IP = 'http://192.168.1.6:80'
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -18,7 +17,6 @@ def predict():
         return jsonify({'error': 'No file part'}), 400
 
     file = request.files['file']
-
     if file.filename == '':
         return jsonify({'error': 'No selected file'}), 400
 
@@ -38,5 +36,41 @@ def predict():
         'confidence': confidence
     })
 
+@app.route('/status', methods=['GET'])
+def status():
+    response = requests.get(f"{ESP8266_IP}/status")
+    return response.json()
+
+@app.route('/control', methods=['POST'])
+def control():
+    global pump_status
+    data = request.json
+
+    if data is None or 'action' not in data:
+        return jsonify({'error': 'Invalid request'}), 400
+
+    print("Received data:", data)
+    action = data['action']
+
+    if action == 'on':
+        pump_status = 'on'
+        print("Sending 'on' command to ESP8266")
+        response = requests.post(f"{ESP8266_IP}/control", data={'action': 'on'})
+        print("ESP8266 Response:", response.text)
+    elif action == 'off':
+        pump_status = 'off'
+        print("Sending 'off' command to ESP8266")
+        response = requests.post(f"{ESP8266_IP}/control", data={'action': 'off'})
+        print("ESP8266 Response:", response.text)
+    else:
+        return jsonify({'error': 'Invalid action'}), 400
+
+    return jsonify({'pump_status': pump_status})
+
+@app.route('/sensor', methods=['GET'])
+def sensor():
+    response = requests.get(f"{ESP8266_IP}/sensor")  
+    return response.json()
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000)

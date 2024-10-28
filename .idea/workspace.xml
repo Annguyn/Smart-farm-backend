@@ -65,7 +65,7 @@
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/nguye/OneDrive - The University of Technology/Python/SmartFarmBackend/static/model&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/nguye/OneDrive - The University of Technology/PBL4/SmartFarmBackend&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -82,6 +82,7 @@
 }</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\nguye\OneDrive - The University of Technology\Python\SmartFarmBackend\iot" />
       <recent name="C:\Users\nguye\OneDrive - The University of Technology\Python\SmartFarmBackend\static\model" />
     </key>
   </component>
@@ -131,6 +132,11 @@
       <workItem from="1729781567486" duration="2528000" />
       <workItem from="1729784251876" duration="908000" />
       <workItem from="1729916889085" duration="7398000" />
+      <workItem from="1729930557800" duration="695000" />
+      <workItem from="1729945576358" duration="2670000" />
+      <workItem from="1730041676445" duration="2209000" />
+      <workItem from="1730089364310" duration="218000" />
+      <workItem from="1730089700237" duration="8733000" />
     </task>
     <servers />
   </component>

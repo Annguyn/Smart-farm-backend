@@ -7,6 +7,7 @@
     <list default="true" id="f1d9bdd8-956d-43d4-82e9-bd90d28788f0" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/iot/esp8266/esp8266.ino" beforeDir="false" afterPath="$PROJECT_DIR$/iot/esp8266/esp8266.ino" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -65,7 +66,7 @@
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/nguye/OneDrive - The University of Technology/PBL4/SmartFarmBackend&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/nguye/OneDrive - The University of Technology/PBL4/SmartFarmBackend/iot&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -82,6 +83,7 @@
 }</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\nguye\OneDrive - The University of Technology\PBL4\SmartFarmBackend\iot" />
       <recent name="C:\Users\nguye\OneDrive - The University of Technology\Python\SmartFarmBackend\iot" />
       <recent name="C:\Users\nguye\OneDrive - The University of Technology\Python\SmartFarmBackend\static\model" />
     </key>
@@ -137,6 +139,11 @@
       <workItem from="1730041676445" duration="2209000" />
       <workItem from="1730089364310" duration="218000" />
       <workItem from="1730089700237" duration="8733000" />
+      <workItem from="1730098654401" duration="222000" />
+      <workItem from="1730280434421" duration="14000" />
+      <workItem from="1730280649901" duration="16000" />
+      <workItem from="1730364987001" duration="4863000" />
+      <workItem from="1730378789664" duration="1980000" />
     </task>
     <servers />
   </component>

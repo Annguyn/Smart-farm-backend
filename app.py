@@ -45,7 +45,6 @@ ESP8266_IP = 'http://192.168.1.5:80'
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    # Capture an image from the ESP32-CAM
     img_resp = requests.get(ESP32_CAM_URL)
     if img_resp.status_code != 200:
         return jsonify({'error': 'Failed to capture image from camera'}), 500
@@ -96,7 +95,20 @@ def control():
         return jsonify({'error': 'Invalid action'}), 400
 
     return jsonify({'pump_status': pump_status})
+@app.route('/mode', methods=['GET', 'POST'])
+def mode_handler():
+    global mode
+    if request.method == 'POST':
+        data = request.json
+        if data is None or 'mode' not in data:
+            return jsonify({'error': 'Invalid request'}), 400
 
+        mode = data['mode']
+        response = requests.post(f"{ESP8266_IP}/mode", data={'mode': mode})
+        if response.status_code != 200:
+            return jsonify({'error': 'Failed to update mode'}), 500
+
+    return jsonify({'mode': mode})
 @app.route('/sensor', methods=['GET'])
 def sensor():
     response = requests.get(f"{ESP8266_IP}/sensor")
@@ -138,28 +150,7 @@ def stream_video():
             time.sleep(1)
 
 
-@app.route('/bmp', methods=['GET'])
-def bmp_handler():
-    pass
 
-@app.route('/xclk', methods=['GET'])
-def xclk_handler():
-    pass
 
-@app.route('/reg', methods=['GET'])
-def reg_handler():
-    pass
-
-@app.route('/greg', methods=['GET'])
-def greg_handler():
-    pass
-
-@app.route('/pll', methods=['GET'])
-def pll_handler():
-    pass
-
-@app.route('/resolution', methods=['GET'])
-def win_handler():
-    pass
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

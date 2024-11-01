@@ -1,5 +1,6 @@
 import io
 import time
+from datetime import datetime
 from io import BytesIO
 
 from flask import Flask, request, jsonify, Response, send_file
@@ -9,11 +10,24 @@ from PIL import Image
 import requests
 import cv2
 from flask_cors import CORS
+import sqlite3
+
 
 app = Flask(__name__)
 
 model = tf.keras.models.load_model('static/model/guava_model.keras')
 class_names = ['dot', 'healthy', 'mummification', 'rust']
+conn = sqlite3.connect('database.db')
+cursor = conn.cursor()
+cursor.execute('''CREATE TABLE IF NOT EXISTS sensor_data (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    timestamp TEXT,
+                    humidity REAL,
+                    temperature REAL,
+                    soil_moisture INTEGER,
+                    pump_status TEXT)''')
+conn.commit()
+conn.close()
 ESP32_CAM_URL = "http://192.168.1.5"
 ESP8266_IP = 'http://192.168.1.5:80'
 
@@ -52,7 +66,6 @@ def predict():
     img = Image.open(BytesIO(img_resp.content)).convert('RGB')
     img = img.resize((224, 224))
 
-    # Preprocess and predict
     img_array = tf.keras.utils.img_to_array(img)
     img_array = np.expand_dims(img_array, axis=0)
 
@@ -64,7 +77,26 @@ def predict():
         'predicted_class': predicted_class,
         'confidence': confidence
     })
+@app.route('/sensor_data', methods=['POST'])
+def sensor_data():
+    data = request.json
+    if data is None:
+        return jsonify({'error': 'Invalid request'}), 400
 
+    humidity = data.get('humidity')
+    temperature = data.get('temperature')
+    soil_moisture = data.get('soil_moisture')
+    pump_status = data.get('pump_status')
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    cursor.execute('''INSERT INTO sensor_data (timestamp, humidity, temperature, soil_moisture, pump_status)
+                      VALUES (?, ?, ?, ?, ?)''', (timestamp, humidity, temperature, soil_moisture, pump_status))
+    conn.commit()
+    conn.close()
+
+    return jsonify({'status': 'success'})
 @app.route('/status', methods=['GET'])
 def status():
     response = requests.get(f"{ESP8266_IP}/status")
@@ -148,8 +180,6 @@ def stream_video():
         except requests.exceptions.RequestException as e:
             print(f"Error: {e}")
             time.sleep(1)
-
-
 
 
 if __name__ == '__main__':

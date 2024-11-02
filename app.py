@@ -191,19 +191,16 @@ def statistics():
 
     try:
         if filter_type == 'day':
-            # Get start and end for the whole day
             start_value = datetime.strptime(filter_value, '%Y-%m-%d')
             end_value = start_value + timedelta(days=1)  # The end is the next day
             query = "SELECT * FROM sensor_data WHERE timestamp >= ? AND timestamp < ?"
             parameters = (start_value.strftime('%Y-%m-%d %H:%M:%S'), end_value.strftime('%Y-%m-%d %H:%M:%S'))
         elif filter_type == 'hour':
-            # Get start and end for the specified hour
             start_value = datetime.strptime(filter_value.split('.')[0], '%Y-%m-%dT%H:%M:%S')
             end_value = start_value + timedelta(hours=1)
             query = "SELECT * FROM sensor_data WHERE timestamp >= ? AND timestamp < ?"
             parameters = (start_value.strftime('%Y-%m-%d %H:%M:%S'), end_value.strftime('%Y-%m-%d %H:%M:%S'))
         elif filter_type == 'month':
-            # Get start and end for the whole month
             start_value = datetime.strptime(filter_value, '%Y-%m-%d')
             end_value = (start_value + timedelta(days=32)).replace(day=1)  # Move to the next month
             query = "SELECT * FROM sensor_data WHERE timestamp >= ? AND timestamp < ?"

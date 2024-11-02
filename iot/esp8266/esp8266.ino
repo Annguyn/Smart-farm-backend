@@ -63,6 +63,8 @@ void loop() {
     Serial.print(" °C, Humidity: ");
     Serial.print(humidity);
     Serial.println(" %");
+    Serial.print("Distance: ");
+    Serial.println(readUltrasonicDistance());
 
     int soilMoisture = analogRead(SOIL_MOISTURE_PIN);
     Serial.print("Soil Moisture: ");

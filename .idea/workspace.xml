@@ -5,12 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f1d9bdd8-956d-43d4-82e9-bd90d28788f0" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/4f3755a6-3bca-43bf-9162-0bacf1796eed.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/4f3755a6-3bca-43bf-9162-0bacf1796eed.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/database.db" beforeDir="false" afterPath="$PROJECT_DIR$/database.db" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/iot/esp8266/esp8266.ino" beforeDir="false" afterPath="$PROJECT_DIR$/iot/esp8266/esp8266.ino" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -90,6 +88,9 @@
       <recent name="C:\Users\nguye\OneDrive - The University of Technology\Python\SmartFarmBackend\iot" />
       <recent name="C:\Users\nguye\OneDrive - The University of Technology\Python\SmartFarmBackend\static\model" />
     </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\nguye\OneDrive - The University of Technology\PBL4\SmartFarmBackend" />
+    </key>
   </component>
   <component name="RunManager">
     <configuration name="SmartFarmBackend" type="Python.FlaskServer">
@@ -100,7 +101,7 @@
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
@@ -153,6 +154,14 @@
       <workItem from="1730466892652" duration="1754000" />
       <workItem from="1730472220123" duration="1893000" />
       <workItem from="1730528623875" duration="11775000" />
+      <workItem from="1730552983059" duration="131000" />
+      <workItem from="1730623301714" duration="28000" />
+      <workItem from="1730738933818" duration="361000" />
+      <workItem from="1730777026629" duration="337000" />
+      <workItem from="1730795403253" duration="1104000" />
+      <workItem from="1730895202664" duration="4303000" />
+      <workItem from="1730944215507" duration="2647000" />
+      <workItem from="1730958351818" duration="14000" />
     </task>
     <servers />
   </component>

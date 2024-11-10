@@ -9,8 +9,8 @@
 #define ULTRASONIC_TRIGGER_PIN D2 
 #define ULTRASONIC_ECHO_PIN D3    
 
-const char* ssid = "DOAN VAN ANH"; 
-const char* password = "0979377346";
+const char* ssid = "Ameriux"; 
+const char* password = "hlewluv123";
 
 
 DHT dht(DHTPIN, DHTTYPE);
@@ -54,7 +54,7 @@ void loop() {
     float temperature = dht.readTemperature();
 
     if (isnan(humidity) || isnan(temperature)) {
-        Serial.println("Failed to read from DHT11");
+        // Serial.println("Failed to read from DHT11");
         return;
     }
 

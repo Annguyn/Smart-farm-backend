@@ -22,49 +22,54 @@ model = tf.keras.models.load_model('static/model/guava_model.keras')
 class_names = ['dot', 'healthy', 'mummification', 'rust']
 conn = sqlite3.connect('database.db')
 cursor = conn.cursor()
-cursor.execute('''CREATE TABLE IF NOT EXISTS sensor_data (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    timestamp TEXT,
-                    humidity REAL,
-                    temperature REAL,
-                    soil_moisture INTEGER,
-                    distance INTEGER,
-                    pump_status TEXT)''')
+cursor.execute('''CREATE TABLE IF NOT EXISTS sensor_status (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        timestamp TEXT,
+                        humidity REAL,
+                        temperature REAL,
+                        soil_moisture INTEGER,
+                        distance INTEGER,
+                        pump_status TEXT,
+                        light INTEGER,
+                        rain_status INTEGER,
+                        sound_status INTEGER,
+                        motor_status INTEGER)''')
 conn.commit()
 conn.close()
-ESP32_CAM_URL = "http://192.168.1.5"
-ESP8266_IP = 'http://192.168.1.8:80'
+ESP32_CAM_URL = "http://172.20.10.2"
+ESP32_IP = 'http://172.20.10.2'
+speaker_status = False
 
-# @app.route('/predict', methods=['POST'])
-# def predict():
-#     if 'file' not in request.files:
-#         return jsonify({'error': 'No file part'}), 400
-#
-#     file = request.files['file']
-#     if file.filename == '':
-#         return jsonify({'error': 'No selected file'}), 400
-#
-#     img = Image.open(file.stream).convert('RGB')
-#     img = img.resize((224, 224))
-#
-#     img_array = tf.keras.utils.img_to_array(img)
-#     img_array = np.expand_dims(img_array, axis=0)
-#
-#     predictions = model.predict(img_array)
-#     predicted_class = class_names[np.argmax(predictions[0])]
-#     confidence = round(100 * (np.max(predictions[0])), 2)
-#
-#     return jsonify({
-#         'filename': file.filename,
-#         'predicted_class': predicted_class,
-#         'confidence': confidence
-#     })
+@app.route('/predict_file', methods=['POST'])
+def predict_file():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+
+    img = Image.open(file.stream).convert('RGB')
+    img = img.resize((224, 224))
+
+    img_array = tf.keras.utils.img_to_array(img)
+    img_array = np.expand_dims(img_array, axis=0)
+
+    predictions = model.predict(img_array)
+    predicted_class = class_names[np.argmax(predictions[0])]
+    confidence = round(100 * (np.max(predictions[0])), 2)
+
+    return jsonify({
+        'filename': file.filename,
+        'predicted_class': predicted_class,
+        'confidence': confidence
+    })
 
 
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
-        img_resp = requests.get("http://192.168.1.7:5000/capture", timeout=5)
+        img_resp = requests.get(f"{ESP32_CAM_URL}/capture", timeout=5)
         img_resp.raise_for_status()
 
         img = Image.open(BytesIO(img_resp.content)).convert('RGB')
@@ -87,56 +92,6 @@ def predict():
         return jsonify({'error': 'Failed to decode image from camera'}), 500
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
-@app.route('/status', methods=['GET'])
-def status():
-    response = requests.get(f"{ESP8266_IP}/status")
-    return response.json()
-
-@app.route('/control', methods=['POST'])
-def control():
-    global pump_status
-    data = request.json
-
-    if data is None or 'action' not in data:
-        return jsonify({'error': 'Invalid request'}), 400
-
-    print("Received data:", data)
-    action = data['action']
-
-    if action == 'on':
-        pump_status = 'on'
-        print("Sending 'on' command to ESP8266")
-        response = requests.post(f"{ESP8266_IP}/control", data={'action': 'on'})
-        print("ESP8266 Response:", response.text)
-    elif action == 'off':
-        pump_status = 'off'
-        print("Sending 'off' command to ESP8266")
-        response = requests.post(f"{ESP8266_IP}/control", data={'action': 'off'})
-        print("ESP8266 Response:", response.text)
-    else:
-        return jsonify({'error': 'Invalid action'}), 400
-
-    return jsonify({'pump_status': pump_status})
-@app.route('/mode', methods=['GET', 'POST'])
-def mode_handler():
-    global mode
-    if request.method == 'POST':
-        data = request.json
-        if data is None or 'mode' not in data:
-            return jsonify({'error': 'Invalid request'}), 400
-
-        mode = data['mode']
-        response = requests.post(f"{ESP8266_IP}/mode", data={'mode': mode})
-        if response.status_code != 200:
-            return jsonify({'error': 'Failed to update mode'}), 500
-
-    return jsonify({'mode': mode})
-@app.route('/sensor', methods=['GET'])
-def sensor():
-    response = requests.get(f"{ESP8266_IP}/sensor")
-    return response.json()
-
 @app.route('/capture', methods=['GET'])
 def capture_handler():
     try:
@@ -181,6 +136,73 @@ def stream_video():
         except requests.exceptions.RequestException as e:
             print(f"Error: {e}")
             time.sleep(1)
+@app.route('/motor/on', methods=['GET'])
+def motor_on():
+    try:
+        response = requests.get(f"{ESP32_IP}/motor/on")
+        response.raise_for_status()
+        return jsonify({'status': 'Motor is ON'}), 200
+    except requests.exceptions.RequestException as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/motor/off', methods=['GET'])
+def motor_off():
+    try:
+        response = requests.get(f"{ESP32_IP}/motor/off")
+        response.raise_for_status()
+        return jsonify({'status': 'Motor is OFF'}), 200
+    except requests.exceptions.RequestException as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/servo', methods=['GET'])
+def servo():
+    angle = request.args.get('angle')
+    if not angle:
+        return jsonify({'error': 'Angle parameter is required'}), 400
+    try:
+        response = requests.get(f"{ESP32_IP}/servo?angle={angle}")
+        response.raise_for_status()
+        return jsonify({'status': f'Servo moved to angle: {angle}'}), 200
+    except requests.exceptions.RequestException as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/pump/on', methods=['GET'])
+def pump_on():
+    try:
+        response = requests.get(f"{ESP32_IP}/pump/on")
+        response.raise_for_status()
+        return jsonify({'status': 'Water Pump is ON'}), 200
+    except requests.exceptions.RequestException as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/pump/off', methods=['GET'])
+def pump_off():
+    try:
+        response = requests.get(f"{ESP32_IP}/pump/off")
+        response.raise_for_status()
+        return jsonify({'status': 'Water Pump is OFF'}), 200
+    except requests.exceptions.RequestException as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/data', methods=['GET'])
+def get_data():
+    try:
+        response = requests.get(f"{ESP32_IP}/data")
+        response.raise_for_status()
+        return jsonify(response.json()), 200
+    except requests.exceptions.RequestException as e:
+        return jsonify({'error': str(e)}), 500
+@app.route('/speaker/on', methods=['GET'])
+def speaker_on():
+    global speaker_status
+    speaker_status = True
+    return jsonify({'status': 'Speaker is ON'}), 200
+
+@app.route('/speaker/off', methods=['GET'])
+def speaker_off():
+    global speaker_status
+    speaker_status = False
+    return jsonify({'status': 'Speaker is OFF'}), 200
 @app.route('/statistics', methods=['GET'])
 def statistics():
     conn = sqlite3.connect('database.db')
@@ -192,7 +214,7 @@ def statistics():
     try:
         if filter_type == 'day':
             start_value = datetime.strptime(filter_value, '%Y-%m-%d')
-            end_value = start_value + timedelta(days=1)  # The end is the next day
+            end_value = start_value + timedelta(days=1)
             query = "SELECT * FROM sensor_data WHERE timestamp >= ? AND timestamp < ?"
             parameters = (start_value.strftime('%Y-%m-%d %H:%M:%S'), end_value.strftime('%Y-%m-%d %H:%M:%S'))
         elif filter_type == 'hour':
@@ -202,7 +224,7 @@ def statistics():
             parameters = (start_value.strftime('%Y-%m-%d %H:%M:%S'), end_value.strftime('%Y-%m-%d %H:%M:%S'))
         elif filter_type == 'month':
             start_value = datetime.strptime(filter_value, '%Y-%m-%d')
-            end_value = (start_value + timedelta(days=32)).replace(day=1)  # Move to the next month
+            end_value = (start_value + timedelta(days=32)).replace(day=1)
             query = "SELECT * FROM sensor_data WHERE timestamp >= ? AND timestamp < ?"
             parameters = (start_value.strftime('%Y-%m-01 00:00:00'), end_value.strftime('%Y-%m-01 00:00:00'))
         else:
@@ -221,57 +243,50 @@ def statistics():
             float(row[3]),  # temperature
             int(row[4]),  # soil_moisture
             row[5],  # pump_status
-            int(row[6])  # distance
+            int(row[6]),  # distance
+            int(row[7]),  # light
+            int(row[8]),  # rain_status
+            int(row[9]),  # sound_status
+            int(row[10])  # motor_status
         )
 
     data = [convert_values(row) for row in data]
 
     conn.close()
     return jsonify(data)
-@app.route('/history', methods=['GET'])
-def history():
-    conn = sqlite3.connect('database.db')
-    cursor = conn.cursor()
-    cursor.execute('''SELECT * FROM sensor_data ORDER BY timestamp DESC ''')
-    data = cursor.fetchall()
-    conn.close()
 
-    return jsonify(data)
 def fetch_and_store_sensor_data():
-    logging.info("Fetching sensor data...")
     try:
-        data = requests.get(f"{ESP8266_IP}/sensor")
-        data = data.json()
+        response = requests.get(f"{ESP32_IP}/data")
+        response.raise_for_status()
+        data = response.json()
+
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         humidity = data.get('humidity')
         temperature = data.get('temperature')
-        soil_moisture = data.get('soil_moisture')
+        soil_moisture = data.get('soilMoisture')
         distance = data.get('distance')
-        pump_status = data.get('pump_status')
-        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        pump_status = data.get('pumpStatus')
+        light = data.get('light')
+        rain_status = data.get('rainStatus')
+        sound_status = data.get('soundStatus')
+        motor_status = data.get('motorStatus')
 
-        if None not in (humidity, temperature, soil_moisture, distance, pump_status):
-            conn = sqlite3.connect('database.db')
-            cursor = conn.cursor()
-            cursor.execute('''INSERT INTO sensor_data (timestamp, humidity, temperature, soil_moisture, distance, pump_status)
-                              VALUES (?, ?, ?, ?, ?, ?)''', (timestamp, humidity, temperature, soil_moisture, distance, pump_status))
-            conn.commit()
-            conn.close()
-            logging.info("Sensor data stored successfully.")
-        else:
-            logging.warning("Received None value in sensor data.")
-    except Exception as e:
-        logging.error(f"Error fetching sensor data: {str(e)}")
-
-@app.route('/sensor_data', methods=['POST'])
-def sensor_data():
-    fetch_and_store_sensor_data()
-    return jsonify({'status': 'success'})
-
+        conn = sqlite3.connect('database.db')
+        cursor = conn.cursor()
+        cursor.execute('''INSERT INTO sensor_data (timestamp, humidity, temperature, soil_moisture, distance, pump_status, light, rain_status, sound_status, motor_status)
+                          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                       (timestamp, humidity, temperature, soil_moisture, distance, pump_status, light, rain_status, sound_status, motor_status))
+        conn.commit()
+        conn.close()
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching data: {e}")
+    except sqlite3.Error as e:
+        print(f"Database error: {e}")
 
 scheduler = BackgroundScheduler()
 scheduler.add_job(fetch_and_store_sensor_data, 'interval', minutes=15)
 scheduler.start()
 logging.info("Scheduler started.")
 if __name__ == '__main__':
-
     app.run(host='0.0.0.0', port=5000, debug=True)

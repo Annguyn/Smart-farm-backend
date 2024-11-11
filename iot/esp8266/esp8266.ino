@@ -1,142 +1,113 @@
-#include <DHT.h>
 #include <ESP8266WiFi.h>
-#include <ESP8266WebServer.h>
+#include <ESPAsyncWebServer.h>
+#include <DFRobotDFPlayerMini.h>
+#include <Servo.h>
+#include <Stepper.h>
 
-#define DHTPIN D1               
-#define DHTTYPE DHT11           
-#define SOIL_MOISTURE_PIN A0    
-#define RELAY_PIN D7            
-#define ULTRASONIC_TRIGGER_PIN D2 
-#define ULTRASONIC_ECHO_PIN D3    
+#define SERVO_PIN1 D1
+#define SERVO_PIN2 D2
+#define RELAY_PIN D3        
+#define RELAY_FAN_PIN D6   
+#define STEPS_PER_REV 2048
+Stepper curtainStepper(STEPS_PER_REV, D4, D5, D6, D7); 
+Servo servo1;
+Servo servo2;
 
-const char* ssid = "Ameriux"; 
-const char* password = "hlewluv123";
+const char* ssid = "your-SSID";
+const char* password = "your-PASSWORD";
+AsyncWebServer server(80);
 
-
-DHT dht(DHTPIN, DHTTYPE);
-ESP8266WebServer server(80);
-
-String pumpStatus = "off"; 
-String mode = "manual"; 
-const int soilMoistureThreshold = 400; 
+int servo1Angle = 90;
+int servo2Angle = 90;
 
 void setup() {
-    Serial.begin(115200);
-    dht.begin();
+  Serial.begin(115200);
 
-    pinMode(RELAY_PIN, OUTPUT);
-    digitalWrite(RELAY_PIN, LOW); 
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.println("Connecting to WiFi...");
+  }
+  Serial.println("Connected to WiFi");
 
-    pinMode(ULTRASONIC_TRIGGER_PIN, OUTPUT); 
-    pinMode(ULTRASONIC_ECHO_PIN, INPUT);     
+  pinMode(RELAY_PIN, OUTPUT);
+  pinMode(RELAY_FAN_PIN, OUTPUT);
+  digitalWrite(RELAY_PIN, LOW);  
+  digitalWrite(RELAY_FAN_PIN, LOW);  
 
-    WiFi.begin(ssid, password);
-    Serial.print("Connecting to Wi-Fi...");
-    while (WiFi.status() != WL_CONNECTED) {
-        delay(500);
-        Serial.print(".");
-    }
-    Serial.println("Connected!");
-    Serial.print("IP Address: ");
-    Serial.println(WiFi.localIP());
+  servo1.attach(SERVO_PIN1);
+  servo2.attach(SERVO_PIN2);
+  curtainStepper.setSpeed(10);  
+  
+  setupEndpoints();
+}
 
-    server.on("/status", HTTP_GET, handleStatus);
-    server.on("/control", HTTP_POST, handleControl);
-    server.on("/sensor", HTTP_GET, handleSensorData);
-    server.on("/mode", HTTP_POST, handleModeChange); 
-    server.begin();
+void setupEndpoints() {
+  server.on("/curtain/open", HTTP_GET, [](AsyncWebServerRequest *request) {
+    curtainStepper.step(STEPS_PER_REV); 
+    request->send(200, "text/plain", "Curtain is opening");
+  });
+
+  server.on("/curtain/close", HTTP_GET, [](AsyncWebServerRequest *request) {
+    curtainStepper.step(-STEPS_PER_REV);  
+    request->send(200, "text/plain", "Curtain is closing");
+  });
+
+  server.on("/motor/on", HTTP_GET, [](AsyncWebServerRequest *request) {
+    digitalWrite(RELAY_FAN_PIN, HIGH);  
+    request->send(200, "text/plain", "Motor is ON");
+  });
+
+  server.on("/motor/off", HTTP_GET, [](AsyncWebServerRequest *request) {
+    digitalWrite(RELAY_FAN_PIN, LOW); 
+    request->send(200, "text/plain", "Motor is OFF");
+  });
+
+  server.on("/servo/up", HTTP_GET, [](AsyncWebServerRequest *request) {
+    servo1Angle = constrain(servo1Angle + 15, 0, 180);
+    servo2Angle = constrain(servo2Angle + 15, 0, 180);
+    servo1.write(servo1Angle);
+    servo2.write(servo2Angle);
+    request->send(200, "text/plain", "Servo moved up by 15 degrees");
+  });
+
+  server.on("/servo/down", HTTP_GET, [](AsyncWebServerRequest *request) {
+    servo1Angle = constrain(servo1Angle - 15, 0, 180);
+    servo2Angle = constrain(servo2Angle - 15, 0, 180);
+    servo1.write(servo1Angle);
+    servo2.write(servo2Angle);
+    request->send(200, "text/plain", "Servo moved down by 15 degrees");
+  });
+
+  server.on("/servo/left", HTTP_GET, [](AsyncWebServerRequest *request) {
+    servo1Angle = constrain(servo1Angle - 15, 0, 180);
+    servo2Angle = constrain(servo2Angle - 15, 0, 180);
+    servo1.write(servo1Angle);
+    servo2.write(servo2Angle);
+    request->send(200, "text/plain", "Servo moved left by 15 degrees");
+  });
+
+  server.on("/servo/right", HTTP_GET, [](AsyncWebServerRequest *request) {
+    servo1Angle = constrain(servo1Angle + 15, 0, 180);
+    servo2Angle = constrain(servo2Angle + 15, 0, 180);
+    servo1.write(servo1Angle);
+    servo2.write(servo2Angle);
+    request->send(200, "text/plain", "Servo moved right by 15 degrees");
+  });
+
+  server.on("/pump/on", HTTP_GET, [](AsyncWebServerRequest *request) {
+    digitalWrite(RELAY_PIN, HIGH);  
+    request->send(200, "text/plain", "Pump is ON");
+  });
+
+  server.on("/pump/off", HTTP_GET, [](AsyncWebServerRequest *request) {
+    digitalWrite(RELAY_PIN, LOW);  
+    request->send(200, "text/plain", "Pump is OFF");
+  });
+
+  server.begin();
 }
 
 void loop() {
-    server.handleClient();
-
-    float humidity = dht.readHumidity();
-    float temperature = dht.readTemperature();
-
-    if (isnan(humidity) || isnan(temperature)) {
-        // Serial.println("Failed to read from DHT11");
-        return;
-    }
-
-    Serial.print("Temperature: ");
-    Serial.print(temperature);
-    Serial.print(" °C, Humidity: ");
-    Serial.print(humidity);
-    Serial.println(" %");
-    Serial.print("Distance: ");
-    Serial.println(readUltrasonicDistance());
-
-    int soilMoisture = analogRead(SOIL_MOISTURE_PIN);
-    Serial.print("Soil Moisture: ");
-    Serial.println(soilMoisture);
-
-    if (mode == "automatic") {
-        if (soilMoisture < soilMoistureThreshold && pumpStatus == "off") {
-            Serial.println("Activating pump due to low soil moisture");
-            pumpStatus = "on";
-            digitalWrite(RELAY_PIN, HIGH); 
-        } else if (soilMoisture >= soilMoistureThreshold && pumpStatus == "on") {
-            Serial.println("Deactivating pump due to sufficient soil moisture");
-            pumpStatus = "off";
-            digitalWrite(RELAY_PIN, LOW); 
-        }
-    }
-
-    delay(2000);
-}
-
-void handleStatus() {
-    server.send(200, "application/json", "{\"pump_status\":\"" + pumpStatus + "\", \"mode\":\"" + mode + "\"}");
-}
-
-void handleControl() {
-    if (server.hasArg("action")) {
-        String action = server.arg("action");
-        if (action == "on") {
-            Serial.println("PUMP_ON");
-            pumpStatus = "on";
-            digitalWrite(RELAY_PIN, HIGH); 
-        } else if (action == "off") {
-            Serial.println("PUMP_OFF");
-            pumpStatus = "off";
-            digitalWrite(RELAY_PIN, LOW); 
-        }
-    }
-    server.send(200, "application/json", "{\"pump_status\":\"" + pumpStatus + "\"}");
-}
-
-void handleSensorData() {
-    float humidity = dht.readHumidity();
-    float temperature = dht.readTemperature();
-    int soilMoisture = analogRead(SOIL_MOISTURE_PIN);
-    long distance = readUltrasonicDistance(); 
-
-    String json = "{\"temperature\":" + String(temperature) +
-                  ", \"humidity\":" + String(humidity) + 
-                  ", \"soil_moisture\":" + String(soilMoisture) +
-                  ", \"distance\":" + String(distance) +
-                  ", \"pump_status\":\"" + pumpStatus + "\"}";
-
-    server.send(200, "application/json", json);
-}
-
-void handleModeChange() {
-    if (server.hasArg("mode")) {
-        mode = server.arg("mode");
-        Serial.print("Mode changed to: ");
-        Serial.println(mode);
-    }
-    server.send(200, "application/json", "{\"mode\":\"" + mode + "\"}");
-}
-
-long readUltrasonicDistance() {
-    digitalWrite(ULTRASONIC_TRIGGER_PIN, LOW);
-    delayMicroseconds(2);
-    digitalWrite(ULTRASONIC_TRIGGER_PIN, HIGH);
-    delayMicroseconds(10);
-    digitalWrite(ULTRASONIC_TRIGGER_PIN, LOW);
-
-    long duration = pulseIn(ULTRASONIC_ECHO_PIN, HIGH);
-    long distance = duration * 0.034 / 2; 
-    return distance;
+  // No need for any code here since the server handles everything
 }

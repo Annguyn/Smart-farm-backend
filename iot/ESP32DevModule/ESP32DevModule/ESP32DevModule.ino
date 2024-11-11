@@ -6,22 +6,17 @@
 #include <LiquidCrystal_I2C.h>
 #include <DFRobotDFPlayerMini.h>
 #include <RTClib.h>
-#include <IRRemoteESP32.h>  // Correct IR library for ESP32
+#include <IRRemoteESP32.h>  
 #include <Adafruit_PN532.h>
+#include <HTTPClient.h>
 
 #define DHTPIN 4
 #define DHTTYPE DHT11
 #define MOISTURE_PIN 34
-#define RELAY_PIN 25
 #define SPEAKER_PIN1 33
 #define SPEAKER_PIN2 32
 #define SPEAKER_POWER_PIN 5 
-#define MOTOR_PIN1 12
-#define MOTOR_PIN2 14
-#define SERVO_PIN1 13
-#define SERVO_PIN2 14
 #define RAIN_PIN 26
-#define STEP_PIN 27
 #define SOUND_SENSOR_PIN 15
 #define IR_PIN 18
 #define LIGHT_SENSOR_PIN A0
@@ -34,12 +29,12 @@ DHT dht(DHTPIN, DHTTYPE);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 DFRobotDFPlayerMini myDFPlayer;
 RTC_DS3231 rtc;
-IRRemoteESP32 irRemote(IR_PIN);  // Use IRRemoteESP32 for ESP32
+IRRemoteESP32 irRemote(IR_PIN); 
 
 Adafruit_PN532 nfc(SDA_PIN, SCL_PIN);
 
 HardwareSerial mySerial(1);
-
+const char* esp8266_ip = "192.168.1.1";
 const char* ssid = "your-SSID";
 const char* password = "your-PASSWORD";
 AsyncWebServer server(80);
@@ -73,15 +68,7 @@ void setup() {
 
   mySerial.begin(9600, SERIAL_8N1, 33, 32);
   myDFPlayer.begin(mySerial);
-
-  pinMode(RELAY_PIN, OUTPUT);
-
-  pinMode(MOTOR_PIN1, OUTPUT);
-  pinMode(MOTOR_PIN2, OUTPUT);
-
-  pinMode(SERVO_PIN1, OUTPUT);
-  pinMode(SERVO_PIN2, OUTPUT);
-
+  
   pinMode(SOUND_SENSOR_PIN, INPUT);
 
   pinMode(RAIN_PIN, INPUT);
@@ -91,7 +78,7 @@ void setup() {
   pinMode(TRIG_PIN, OUTPUT);
   pinMode(ECHO_PIN, INPUT);
 
-  // irRemote.begin();  // Initialize IR receiver
+  // irRemote.begin();
 
   setupEndpoints();
 }
@@ -105,40 +92,31 @@ void setupEndpoints() {
     response += "\"light\": " + String(readLightLevel()) + ",";  
     response += "\"rainStatus\": " + String(digitalRead(RAIN_PIN)) + ","; 
     response += "\"soundStatus\": " + String(digitalRead(SOUND_SENSOR_PIN)) + ","; 
-    response += "\"motorStatus\": " + String(digitalRead(MOTOR_PIN1)) + ","; 
-    response += "\"pumpStatus\": " + String(digitalRead(RELAY_PIN)); 
+    response += "\"motorStatus\": " + String(fanStatus) + ","; 
+    response += "\"pumpStatus\": " + String(pumpStatus) + ","
+    response += "\"distance\": " + String(readDistance()) ;
     response += "}";
 
     request->send(200, "application/json", response);
   });
 
   server.on("/motor/on", HTTP_GET, [](AsyncWebServerRequest *request){
-    digitalWrite(MOTOR_PIN1, HIGH);
-    digitalWrite(MOTOR_PIN2, HIGH);
+    turnOnFan();
     request->send(200, "text/plain", "Motor is ON");
   });
 
   server.on("/motor/off", HTTP_GET, [](AsyncWebServerRequest *request){
-    digitalWrite(MOTOR_PIN1, LOW);
-    digitalWrite(MOTOR_PIN2, LOW);
+    turnOffFan();
     request->send(200, "text/plain", "Motor is OFF");
   });
 
-  server.on("/servo", HTTP_GET, [](AsyncWebServerRequest *request){
-    String angle = request->getParam("angle")->value();
-    int servoAngle = angle.toInt();
-    analogWrite(SERVO_PIN1, servoAngle);
-    analogWrite(SERVO_PIN2, servoAngle);
-    request->send(200, "text/plain", "Servo moved to angle: " + angle);
-  });
-
   server.on("/pump/on", HTTP_GET, [](AsyncWebServerRequest *request){
-    digitalWrite(RELAY_PIN, HIGH);
+    turnOnPump();
     request->send(200, "text/plain", "Water Pump is ON");
   });
 
   server.on("/pump/off", HTTP_GET, [](AsyncWebServerRequest *request){
-    digitalWrite(RELAY_PIN, LOW);
+    turnOffPump();
     request->send(200, "text/plain", "Water Pump is OFF");
   });
   server.on("/speaker/on", HTTP_GET, [](AsyncWebServerRequest *request){
@@ -151,6 +129,34 @@ void setupEndpoints() {
     speakerStatus = false;
     request->send(200, "text/plain", "Speaker is OFF");
     playSpeakerNotification("speaker_off");
+  });
+  server.on("/servo/up", HTTP_GET, [](AsyncWebServerRequest *request){
+    moveServoUp();
+    request->send(200, "text/plain", "Servo moved up by 15 degrees");
+  });
+
+  server.on("/servo/down", HTTP_GET, [](AsyncWebServerRequest *request){
+    moveServoDown();
+    request->send(200, "text/plain", "Servo moved down by 15 degrees");
+  });
+
+  server.on("/servo/left", HTTP_GET, [](AsyncWebServerRequest *request){
+    moveServoLeft();
+    request->send(200, "text/plain", "Servo moved left by 15 degrees");
+  });
+
+  server.on("/servo/right", HTTP_GET, [](AsyncWebServerRequest *request){
+    moveServoRight();
+    request->send(200, "text/plain", "Servo moved right by 15 degrees");
+  });
+  server.on("/curtain/open", HTTP_GET, [](AsyncWebServerRequest *request){
+    openCurtain(); 
+    request->send(200, "text/plain", "Curtain is opening");
+  });
+
+  server.on("/curtain/close", HTTP_GET, [](AsyncWebServerRequest *request){
+    closeCurtain();
+    request->send(200, "text/plain", "Curtain is closing");
   });
   server.begin();
 }
@@ -190,7 +196,6 @@ void loop() {
   if (result != -1) {
     Serial.println(result);
 
-    // Add custom commands based on your remote
     if (result == 1) { 
       turnOnFan();
     } 
@@ -227,34 +232,100 @@ void loop() {
 }
 
 void openCurtain() {
-  analogWrite(SERVO_PIN1, 180);
-  analogWrite(SERVO_PIN2, 180);
+  HTTPClient http;
+  String url = "http://" + String(esp8266_ip) + "/curtain/open"; 
+
+  http.begin(url);
+  int httpCode = http.GET();
+  if (httpCode > 0) {
+    String payload = http.getString();
+    Serial.println(payload); 
+  } else {
+    Serial.println("Error in HTTP request");
+  }
+  http.end();
+  curtainStatus = true;  
 }
 
 void closeCurtain() {
-  analogWrite(SERVO_PIN1, 0);
-  analogWrite(SERVO_PIN2, 0);
+  HTTPClient http;
+  String url = "http://" + String(esp8266_ip) + "/curtain/close"; 
+
+  http.begin(url);
+  int httpCode = http.GET();
+  if (httpCode > 0) {
+    String payload = http.getString(); 
+    Serial.println(payload); 
+  } else {
+    Serial.println("Error in HTTP request");
+  }
+  http.end();
+  curtainStatus = false;  
 }
 
 void turnOnPump() {
-  digitalWrite(RELAY_PIN, HIGH);
-  pumpStatus = true;
+  HTTPClient http;
+  String url = "http://" + String(esp8266_ip) + "/pump/on"; 
+
+  http.begin(url);
+  int httpCode = http.GET();
+  if (httpCode > 0) {
+    String payload = http.getString(); 
+    Serial.println(payload); 
+  } else {
+    Serial.println("Error in HTTP request");
+  }
+  http.end();
+  pumpStatus = true;  
 }
 
 void turnOffPump() {
-  digitalWrite(RELAY_PIN, LOW);
+  HTTPClient http;
+  String url = "http://" + String(esp8266_ip) + "/pump/off"; 
+  http.begin(url);
+  int httpCode = http.GET();
+  if (httpCode > 0) {
+    String payload = http.getString(); 
+    Serial.println(payload);
+  } else {
+    Serial.println("Error in HTTP request");
+  }
+  http.end();
   pumpStatus = false;
 }
 
 void turnOnFan() {
-  digitalWrite(MOTOR_PIN1, HIGH);
-  digitalWrite(MOTOR_PIN2, HIGH);
+  HTTPClient http;
+  String url = "http://" + String(esp8266_ip) + "/motor/on";
+
+  http.begin(url);
+  int httpCode = http.GET();
+  if (httpCode > 0) {
+    String payload = http.getString(); 
+    Serial.println(payload); 
+  } else {
+    Serial.println("Error in HTTP request");
+  }
+  http.end();
+  fanStatus = true;  
 }
 
 void turnOffFan() {
-  digitalWrite(MOTOR_PIN1, LOW);
-  digitalWrite(MOTOR_PIN2, LOW);
+  HTTPClient http;
+  String url = "http://" + String(esp8266_ip) + "/motor/off";
+
+  http.begin(url);
+  int httpCode = http.GET();
+  if (httpCode > 0) {
+    String payload = http.getString();
+    Serial.println(payload);
+  } else {
+    Serial.println("Error in HTTP request");
+  }
+  http.end();
+  fanStatus = false;  
 }
+
 
 int readLightLevel() {
   return analogRead(LIGHT_SENSOR_PIN);
@@ -283,4 +354,75 @@ void playSpeakerNotification(String action) {
     myDFPlayer.stop();
     digitalWrite(SPEAKER_POWER_PIN, LOW);
   }
+}
+void moveServoUp() {
+  HTTPClient http;
+  String url = "http://" + String(esp8266_ip) + "/servo/up";
+
+  http.begin(url);  
+  int httpCode = http.GET();  
+  if (httpCode > 0) {
+    String payload = http.getString(); 
+    Serial.println(payload);  
+  } else {
+    Serial.println("Error in HTTP request");
+  }
+  http.end();  
+}
+
+void moveServoDown() {
+  HTTPClient http;
+  String url = "http://" + String(esp8266_ip) + "/servo/down"; 
+
+  http.begin(url);
+  int httpCode = http.GET();
+  if (httpCode > 0) {
+    String payload = http.getString();
+    Serial.println(payload);
+  } else {
+    Serial.println("Error in HTTP request");
+  }
+  http.end();
+}
+
+void moveServoLeft() {
+  HTTPClient http;
+  String url = "http://" + String(esp8266_ip) + "/servo/left";
+
+  http.begin(url);
+  int httpCode = http.GET();
+  if (httpCode > 0) {
+    String payload = http.getString();
+    Serial.println(payload);
+  } else {
+    Serial.println("Error in HTTP request");
+  }
+  http.end();
+}
+
+void moveServoRight() {
+  HTTPClient http;
+  String url = "http://" + String(esp8266_ip) + "/servo/right"; 
+
+  http.begin(url);
+  int httpCode = http.GET();
+  if (httpCode > 0) {
+    String payload = http.getString();
+    Serial.println(payload);
+  } else {
+    Serial.println("Error in HTTP request");
+  }
+  http.end();
+}
+
+int readDistance() {
+  digitalWrite(TRIG_PIN, LOW);
+  delayMicroseconds(2);
+  digitalWrite(TRIG_PIN, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG_PIN, LOW);
+  
+  long duration = pulseIn(ECHO_PIN, HIGH);
+  long distance = (duration / 2) / 29.1;  
+  return distance;
 }

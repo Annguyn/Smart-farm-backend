@@ -31,7 +31,12 @@ DFRobotDFPlayerMini myDFPlayer;
 RTC_DS3231 rtc;
 IRRemoteESP32 irRemote(IR_PIN); 
 
-Adafruit_PN532 nfc(SDA_PIN, SCL_PIN);
+#define NFC_SCK_PIN 18
+#define NFC_MISO_PIN 19
+#define NFC_MOSI_PIN 23
+#define NFC_SS_PIN 5
+
+Adafruit_PN532 nfc(NFC_SCK_PIN, NFC_MISO_PIN, NFC_MOSI_PIN, NFC_SS_PIN);
 
 HardwareSerial mySerial(1);
 const char* esp8266_ip = "192.168.1.1";
@@ -55,7 +60,8 @@ void setup() {
     Serial.println("Connecting to WiFi...");
   }
   Serial.println("Connected to WiFi");
-
+  Serial.print("IP Address: ");
+  Serial.println(WiFi.localIP());
   dht.begin();
 
   lcd.begin(16, 2);
@@ -93,7 +99,7 @@ void setupEndpoints() {
     response += "\"rainStatus\": " + String(digitalRead(RAIN_PIN)) + ","; 
     response += "\"soundStatus\": " + String(digitalRead(SOUND_SENSOR_PIN)) + ","; 
     response += "\"motorStatus\": " + String(fanStatus) + ","; 
-    response += "\"pumpStatus\": " + String(pumpStatus) + ","
+    response += "\"pumpStatus\": " + String(pumpStatus) + "," ;
     response += "\"distance\": " + String(readDistance()) ;
     response += "}";
 
@@ -339,17 +345,33 @@ void turnOffLight() {
   // Implement the logic to turn off light
 }
 void playSpeakerNotification(String action) {
-  if (action == "low_soil_moisture") {
-    myDFPlayer.play(1);
-  } else if (action == "high_soil_moisture") {
-    myDFPlayer.play(2);
+  if (action == "low_humidity") {
+    myDFPlayer.play(1); 
   } else if (action == "high_humidity") {
-    myDFPlayer.play(3);
+    myDFPlayer.play(2);
   } else if (action == "high_temperature") {
+    myDFPlayer.play(3);
+  } else if (action == "low_temperature") {
     myDFPlayer.play(4);
-  } else if (action == "turn_speaker_on") {
+  } else if (action == "high_temperature") {
+    myDFPlayer.play(5);
+  } else if (action == "low_temperature") {
+    myDFPlayer.play(6);
+  } else if (action == "stable") {
+    myDFPlayer.play(7);
+  } else if (action == "open_fan") {
+    myDFPlayer.play(8);
+  } else if (action == "off_fan") {
+    myDFPlayer.play(9);
+  } else if (action == "open_curtain") {
+    myDFPlayer.play(10);
+  } else if (action == "close_curtain") {
+    myDFPlayer.play(11);
+  } else if (action == "low_temperature") {
+    myDFPlayer.play(12);
+  } else if (action == "low_light") {
     digitalWrite(SPEAKER_POWER_PIN, HIGH);  
-    myDFPlayer.play(5); 
+    myDFPlayer.play(13); 
   } else if (action == "turn_speaker_off") {
     myDFPlayer.stop();
     digitalWrite(SPEAKER_POWER_PIN, LOW);

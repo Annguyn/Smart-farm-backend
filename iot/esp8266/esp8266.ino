@@ -7,14 +7,14 @@
 #define SERVO_PIN1 D1
 #define SERVO_PIN2 D2
 #define RELAY_PIN D3        
-#define RELAY_FAN_PIN D6   
+#define RELAY_FAN_PIN D8   
 #define STEPS_PER_REV 2048
 Stepper curtainStepper(STEPS_PER_REV, D4, D5, D6, D7); 
 Servo servo1;
 Servo servo2;
 
-const char* ssid = "your-SSID";
-const char* password = "your-PASSWORD";
+const char* ssid = "Giangvien";
+const char* password = "dhbk@2024";
 AsyncWebServer server(80);
 
 int servo1Angle = 90;
@@ -29,7 +29,8 @@ void setup() {
     Serial.println("Connecting to WiFi...");
   }
   Serial.println("Connected to WiFi");
-
+  Serial.println("IP Address: ");
+  Serial.println(WiFi.localIP());
   pinMode(RELAY_PIN, OUTPUT);
   pinMode(RELAY_FAN_PIN, OUTPUT);
   digitalWrite(RELAY_PIN, LOW);  
@@ -44,14 +45,21 @@ void setup() {
 
 void setupEndpoints() {
   server.on("/curtain/open", HTTP_GET, [](AsyncWebServerRequest *request) {
-    curtainStepper.step(STEPS_PER_REV); 
+    for (int i = 0; i < STEPS_PER_REV; i++) {
+        curtainStepper.step(1);
+        delay(5);                
+    }
     request->send(200, "text/plain", "Curtain is opening");
   });
 
   server.on("/curtain/close", HTTP_GET, [](AsyncWebServerRequest *request) {
-    curtainStepper.step(-STEPS_PER_REV);  
+    for (int i = 0; i < STEPS_PER_REV; i++) {
+        curtainStepper.step(-1); 
+        delay(5);                 
+    }
     request->send(200, "text/plain", "Curtain is closing");
   });
+
 
   server.on("/motor/on", HTTP_GET, [](AsyncWebServerRequest *request) {
     digitalWrite(RELAY_FAN_PIN, HIGH);  
@@ -64,33 +72,26 @@ void setupEndpoints() {
   });
 
   server.on("/servo/up", HTTP_GET, [](AsyncWebServerRequest *request) {
-    servo1Angle = constrain(servo1Angle + 15, 0, 180);
-    servo2Angle = constrain(servo2Angle + 15, 0, 180);
-    servo1.write(servo1Angle);
-    servo2.write(servo2Angle);
-    request->send(200, "text/plain", "Servo moved up by 15 degrees");
-  });
+  servo1Angle = constrain(servo1Angle + 15, 0, 180);
+  servo1.write(servo1Angle);
+  request->send(200, "text/plain", "Servo moved up by 15 degrees");
+});
+
 
   server.on("/servo/down", HTTP_GET, [](AsyncWebServerRequest *request) {
     servo1Angle = constrain(servo1Angle - 15, 0, 180);
-    servo2Angle = constrain(servo2Angle - 15, 0, 180);
     servo1.write(servo1Angle);
-    servo2.write(servo2Angle);
     request->send(200, "text/plain", "Servo moved down by 15 degrees");
   });
 
   server.on("/servo/left", HTTP_GET, [](AsyncWebServerRequest *request) {
-    servo1Angle = constrain(servo1Angle - 15, 0, 180);
     servo2Angle = constrain(servo2Angle - 15, 0, 180);
-    servo1.write(servo1Angle);
     servo2.write(servo2Angle);
     request->send(200, "text/plain", "Servo moved left by 15 degrees");
   });
 
   server.on("/servo/right", HTTP_GET, [](AsyncWebServerRequest *request) {
-    servo1Angle = constrain(servo1Angle + 15, 0, 180);
     servo2Angle = constrain(servo2Angle + 15, 0, 180);
-    servo1.write(servo1Angle);
     servo2.write(servo2Angle);
     request->send(200, "text/plain", "Servo moved right by 15 degrees");
   });

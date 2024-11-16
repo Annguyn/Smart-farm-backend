@@ -5,7 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f1d9bdd8-956d-43d4-82e9-bd90d28788f0" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/iot/ESP32DevModule/ESP32DevModule/ESP32DevModule.ino" beforeDir="false" afterPath="$PROJECT_DIR$/iot/ESP32DevModule/ESP32DevModule/ESP32DevModule.ino" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -161,6 +161,8 @@
       <workItem from="1730958351818" duration="14000" />
       <workItem from="1731248529860" duration="1437000" />
       <workItem from="1731331260719" duration="32000" />
+      <workItem from="1731426701037" duration="809000" />
+      <workItem from="1731457191409" duration="144000" />
     </task>
     <servers />
   </component>

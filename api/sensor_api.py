@@ -31,17 +31,17 @@ def statistics():
         if filter_type == 'day':
             start_value = datetime.strptime(filter_value, '%Y-%m-%d')
             end_value = start_value + timedelta(days=1)
-            query = "SELECT * FROM sensor_data WHERE timestamp >= ? AND timestamp < ?"
+            query = "SELECT * FROM sensor_status WHERE timestamp >= ? AND timestamp < ?"
             parameters = (start_value.strftime('%Y-%m-%d %H:%M:%S'), end_value.strftime('%Y-%m-%d %H:%M:%S'))
         elif filter_type == 'hour':
             start_value = datetime.strptime(filter_value.split('.')[0], '%Y-%m-%dT%H:%M:%S')
             end_value = start_value + timedelta(hours=1)
-            query = "SELECT * FROM sensor_data WHERE timestamp >= ? AND timestamp < ?"
+            query = "SELECT * FROM sensor_status WHERE timestamp >= ? AND timestamp < ?"
             parameters = (start_value.strftime('%Y-%m-%d %H:%M:%S'), end_value.strftime('%Y-%m-%d %H:%M:%S'))
         elif filter_type == 'month':
             start_value = datetime.strptime(filter_value, '%Y-%m-%d')
             end_value = (start_value + timedelta(days=32)).replace(day=1)
-            query = "SELECT * FROM sensor_data WHERE timestamp >= ? AND timestamp < ?"
+            query = "SELECT * FROM sensor_status WHERE timestamp >= ? AND timestamp < ?"
             parameters = (start_value.strftime('%Y-%m-01 00:00:00'), end_value.strftime('%Y-%m-01 00:00:00'))
         else:
             return jsonify({'error': 'Invalid filter type'}), 400
@@ -63,13 +63,11 @@ def statistics():
             'light': int(row[7]),
             'rain_status': int(row[8]),
             'sound_status': int(row[9]),
-            'motor_status': int(row[10]),
-            'waterLevelStatus': int(row[11]),
-            'fanStatus': int(row[12]),
-            'curtainStatus': int(row[13]),
-            'automaticFan': int(row[14]),
-            'automaticPump': int(row[15]),
-            'automaticCurtain': int(row[16])
+            'fanStatus': int(row[10]),
+            'curtainStatus': int(row[11]),
+            'automaticFan': int(row[12]),
+            'automaticPump': int(row[13]),
+            'automaticCurtain': int(row[14])
         }
 
     data = [convert_values(row) for row in data]

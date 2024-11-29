@@ -11,7 +11,7 @@ import tensorflow as tf
 import PIL
 
 model = tf.keras.models.load_model('static/model/guava_model.keras')
-class_names = ['dot', 'healthy', 'mummification', 'rust']
+class_names = ['dot', 'healthy', 'rust']
 
 esp32_cam_api = Blueprint('esp32_cam_api', __name__)
 load_dotenv()
@@ -88,23 +88,6 @@ def predict():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-def stream_video():
-    while True:
-        try:
-            img_resp = requests.get(f"{ESP32_CAM_URL}/capture", timeout=5)
-            img_resp.raise_for_status()
-
-            img_arr = np.array(bytearray(img_resp.content), dtype=np.uint8)
-            frame = cv2.imdecode(img_arr, cv2.IMREAD_COLOR)
-
-            _, buffer = cv2.imencode('.jpg', frame)
-            frame = buffer.tobytes()
-
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-        except requests.exceptions.RequestException as e:
-            print(f"Error: {e}")
-            time.sleep(1)
 @esp32_cam_api.route('/predict_file', methods=['POST'])
 def predict_file():
     if 'file' not in request.files:

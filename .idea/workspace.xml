@@ -5,25 +5,28 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f1d9bdd8-956d-43d4-82e9-bd90d28788f0" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.env" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/api/curtain_api.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/api/esp32_cam_api.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/api/fan_api.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/api/mode_api.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/api/pump_api.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/api/sensor_api.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/api/servo_api.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/api/speaker_api.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/blueprint_setup.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/database_setup.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/sensor_data_fetcher.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/database.db" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.env" beforeDir="false" afterPath="$PROJECT_DIR$/.env" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/4f3755a6-3bca-43bf-9162-0bacf1796eed.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/4f3755a6-3bca-43bf-9162-0bacf1796eed.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/esp32_cam_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/esp32_cam_api.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/fan_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/fan_api.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/mode_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/mode_api.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/sensor_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/sensor_api.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/servo_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/servo_api.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/database.db" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/blueprint_setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/blueprint_setup.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/iot/ESP32DevModule/ESP32DevModule/ESP32DevModule.ino" beforeDir="false" afterPath="$PROJECT_DIR$/iot/ESP32DevModule/ESP32DevModule/ESP32DevModule.ino" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/iot/esp32cam/esp32cam.ino" beforeDir="false" afterPath="$PROJECT_DIR$/iot/esp32cam/esp32cam.ino" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/iot/esp8266/esp8266.ino" beforeDir="false" afterPath="$PROJECT_DIR$/iot/esp8266/esp8266.ino" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sensor_data_fetcher.py" beforeDir="false" afterPath="$PROJECT_DIR$/sensor_data_fetcher.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/model/guava-more-aug.h5" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/model/guava-w-aug-esp32.h5" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/model/guava.h5" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/model/guava_model.keras" beforeDir="false" afterPath="$PROJECT_DIR$/static/model/guava_model.keras" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/model/my_model.keras" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/sub.py" beforeDir="false" afterPath="$PROJECT_DIR$/sub.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -82,7 +85,7 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "git-widget-placeholder": "main",
-    "last_opened_file_path": "C:/Users/nguye/OneDrive - The University of Technology/PBL4/SmartFarmBackend",
+    "last_opened_file_path": "C:/Users/nguye/OneDrive - The University of Technology/Job/Py",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -99,6 +102,7 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\nguye\OneDrive - The University of Technology\PBL4\SmartFarmBackend\static\model" />
       <recent name="C:\Users\nguye\OneDrive - The University of Technology\PBL4\SmartFarmBackend\iot" />
       <recent name="C:\Users\nguye\OneDrive - The University of Technology\Python\SmartFarmBackend\iot" />
       <recent name="C:\Users\nguye\OneDrive - The University of Technology\Python\SmartFarmBackend\static\model" />
@@ -183,6 +187,26 @@
       <workItem from="1731426701037" duration="809000" />
       <workItem from="1731457191409" duration="144000" />
       <workItem from="1731913833851" duration="3072000" />
+      <workItem from="1731947899073" duration="92000" />
+      <workItem from="1732031140410" duration="18000" />
+      <workItem from="1732106655510" duration="3072000" />
+      <workItem from="1732110579531" duration="2549000" />
+      <workItem from="1732347468987" duration="20000" />
+      <workItem from="1732347518548" duration="38000" />
+      <workItem from="1732347601566" duration="12000" />
+      <workItem from="1732622144226" duration="12047000" />
+      <workItem from="1732684172621" duration="25000" />
+      <workItem from="1732685235846" duration="72000" />
+      <workItem from="1732709826188" duration="2301000" />
+      <workItem from="1732717975078" duration="6383000" />
+      <workItem from="1732752107996" duration="1097000" />
+      <workItem from="1732757304427" duration="3346000" />
+      <workItem from="1732788053683" duration="41000" />
+      <workItem from="1732793087674" duration="1546000" />
+      <workItem from="1732800622505" duration="148000" />
+      <workItem from="1732800824571" duration="48000" />
+      <workItem from="1732805114098" duration="276000" />
+      <workItem from="1732806332720" duration="32000" />
     </task>
     <servers />
   </component>
@@ -204,6 +228,6 @@
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/SmartFarmBackend$SmartFarmBackend.coverage" NAME="SmartFarmBackend Coverage Results" MODIFIED="1731914908905" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/SmartFarmBackend$SmartFarmBackend.coverage" NAME="SmartFarmBackend Coverage Results" MODIFIED="1732794521458" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

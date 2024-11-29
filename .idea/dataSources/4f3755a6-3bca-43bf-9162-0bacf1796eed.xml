@@ -499,7 +499,7 @@
     </routine>
     <schema id="191" parent="1" name="main">
       <Current>1</Current>
-      <LastIntrospectionLocalTimestamp>2024-11-02.06:30:05</LastIntrospectionLocalTimestamp>
+      <LastIntrospectionLocalTimestamp>2024-11-27.12:48:45</LastIntrospectionLocalTimestamp>
     </schema>
     <argument id="192" parent="16">
       <ArgumentDirection>R</ArgumentDirection>
@@ -1590,85 +1590,103 @@
     <argument id="554" parent="190">
       <Position>1</Position>
     </argument>
-    <table id="555" parent="191" name="images"/>
-    <table id="556" parent="191" name="sensor_data"/>
-    <table id="557" parent="191" name="sqlite_master">
+    <table id="555" parent="191" name="sensor_status"/>
+    <table id="556" parent="191" name="sqlite_master">
       <System>1</System>
     </table>
-    <table id="558" parent="191" name="sqlite_sequence">
+    <table id="557" parent="191" name="sqlite_sequence">
       <System>1</System>
     </table>
-    <column id="559" parent="555" name="id">
-      <AutoIncrement>1</AutoIncrement>
-      <DasType>integer|0s</DasType>
-      <NotNull>1</NotNull>
-      <Position>1</Position>
-    </column>
-    <column id="560" parent="555" name="image">
-      <DasType>blob|0s</DasType>
-      <Position>2</Position>
-    </column>
-    <key id="561" parent="555">
-      <ColNames>id</ColNames>
-      <Primary>1</Primary>
-    </key>
-    <column id="562" parent="556" name="id">
+    <column id="558" parent="555" name="id">
       <AutoIncrement>1</AutoIncrement>
       <DasType>INTEGER|0s</DasType>
       <Position>1</Position>
     </column>
-    <column id="563" parent="556" name="timestamp">
+    <column id="559" parent="555" name="timestamp">
       <DasType>TEXT|0s</DasType>
+      <NotNull>1</NotNull>
       <Position>2</Position>
     </column>
-    <column id="564" parent="556" name="humidity">
+    <column id="560" parent="555" name="humidity">
       <DasType>REAL|0s</DasType>
       <Position>3</Position>
     </column>
-    <column id="565" parent="556" name="temperature">
+    <column id="561" parent="555" name="temperature">
       <DasType>REAL|0s</DasType>
       <Position>4</Position>
     </column>
-    <column id="566" parent="556" name="soil_moisture">
-      <DasType>INTEGER|0s</DasType>
+    <column id="562" parent="555" name="soil_moisture">
+      <DasType>REAL|0s</DasType>
       <Position>5</Position>
     </column>
-    <column id="567" parent="556" name="pump_status">
-      <DasType>TEXT|0s</DasType>
+    <column id="563" parent="555" name="distance">
+      <DasType>REAL|0s</DasType>
       <Position>6</Position>
     </column>
-    <column id="568" parent="556" name="distance">
-      <DasType>integer|0s</DasType>
+    <column id="564" parent="555" name="pump_status">
+      <DasType>TEXT|0s</DasType>
       <Position>7</Position>
     </column>
-    <key id="569" parent="556">
+    <column id="565" parent="555" name="light">
+      <DasType>TEXT|0s</DasType>
+      <Position>8</Position>
+    </column>
+    <column id="566" parent="555" name="rain_status">
+      <DasType>TEXT|0s</DasType>
+      <Position>9</Position>
+    </column>
+    <column id="567" parent="555" name="sound_status">
+      <DasType>TEXT|0s</DasType>
+      <Position>10</Position>
+    </column>
+    <column id="568" parent="555" name="fan_status">
+      <DasType>TEXT|0s</DasType>
+      <Position>11</Position>
+    </column>
+    <column id="569" parent="555" name="curtain_status">
+      <DasType>TEXT|0s</DasType>
+      <Position>12</Position>
+    </column>
+    <column id="570" parent="555" name="automatic_fan">
+      <DasType>BOOLEAN|0s</DasType>
+      <Position>13</Position>
+    </column>
+    <column id="571" parent="555" name="automatic_pump">
+      <DasType>BOOLEAN|0s</DasType>
+      <Position>14</Position>
+    </column>
+    <column id="572" parent="555" name="automatic_curtain">
+      <DasType>BOOLEAN|0s</DasType>
+      <Position>15</Position>
+    </column>
+    <key id="573" parent="555">
       <ColNames>id</ColNames>
       <Primary>1</Primary>
     </key>
-    <column id="570" parent="557" name="type">
+    <column id="574" parent="556" name="type">
       <DasType>TEXT|0s</DasType>
       <Position>1</Position>
     </column>
-    <column id="571" parent="557" name="name">
+    <column id="575" parent="556" name="name">
       <DasType>TEXT|0s</DasType>
       <Position>2</Position>
     </column>
-    <column id="572" parent="557" name="tbl_name">
+    <column id="576" parent="556" name="tbl_name">
       <DasType>TEXT|0s</DasType>
       <Position>3</Position>
     </column>
-    <column id="573" parent="557" name="rootpage">
+    <column id="577" parent="556" name="rootpage">
       <DasType>INT|0s</DasType>
       <Position>4</Position>
     </column>
-    <column id="574" parent="557" name="sql">
+    <column id="578" parent="556" name="sql">
       <DasType>TEXT|0s</DasType>
       <Position>5</Position>
     </column>
-    <column id="575" parent="558" name="name">
+    <column id="579" parent="557" name="name">
       <Position>1</Position>
     </column>
-    <column id="576" parent="558" name="seq">
+    <column id="580" parent="557" name="seq">
       <Position>2</Position>
     </column>
   </database-model>

@@ -9,7 +9,7 @@ ESP32_IP = os.getenv('ESP32_IP')
 
 def fetch_and_store_sensor_data():
     try:
-        response = requests.get(f"{ESP32_IP}/data")
+        response = requests.get(f"http://{ESP32_IP}/data")
         response.raise_for_status()
         data = response.json()
 
@@ -20,9 +20,8 @@ def fetch_and_store_sensor_data():
         distance = data.get('distance')
         pump_status = data.get('pumpStatus')
         light = data.get('light')
-        rain_status = data.get('rainStatus')
+        rain_status = data.get('waterLevelStatus')
         sound_status = data.get('soundStatus')
-        motor_status = data.get('motorStatus')
         fan_status = data.get('fanStatus')
         curtain_status = data.get('curtainStatus')
         automatic_fan = data.get('automaticFan')
@@ -31,9 +30,9 @@ def fetch_and_store_sensor_data():
 
         conn = sqlite3.connect('database.db')
         cursor = conn.cursor()
-        cursor.execute('''INSERT INTO sensor_data (timestamp, humidity, temperature, soil_moisture, distance, pump_status, light, rain_status, sound_status, motor_status, fan_status, curtain_status, automatic_fan, automatic_pump, automatic_curtain)
+        cursor.execute('''INSERT INTO sensor_status (timestamp, humidity, temperature, soil_moisture, distance, pump_status, light, rain_status, sound_status,  fan_status, curtain_status, automatic_fan, automatic_pump, automatic_curtain)
                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-                       (timestamp, humidity, temperature, soil_moisture, distance, pump_status, light, rain_status, sound_status, motor_status, fan_status, curtain_status, automatic_fan, automatic_pump, automatic_curtain))
+                       (timestamp, humidity, temperature, soil_moisture, distance, pump_status, light, rain_status,  motor_status, fan_status, curtain_status, automatic_fan, automatic_pump, automatic_curtain))
         conn.commit()
         conn.close()
     except requests.exceptions.RequestException as e:

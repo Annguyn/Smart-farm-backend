@@ -11,6 +11,7 @@ automaticCurtain = False
 automaticFan = False
 automaticPump = False
 
+
 @mode_api.route("/fan/mode/automatic", methods=["POST"])
 def set_fan_automatic():
     try:
@@ -22,6 +23,7 @@ def set_fan_automatic():
         }), response.status_code
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 @mode_api.route("/fan/mode/manual", methods=["POST"])
 def set_fan_manual():
@@ -35,6 +37,7 @@ def set_fan_manual():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
 @mode_api.route("/pump/mode/automatic", methods=["POST"])
 def set_pump_automatic():
     try:
@@ -46,6 +49,7 @@ def set_pump_automatic():
         }), response.status_code
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 @mode_api.route("/pump/mode/manual", methods=["POST"])
 def set_pump_manual():
@@ -59,6 +63,7 @@ def set_pump_manual():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
 @mode_api.route("/curtain/mode/automatic", methods=["POST"])
 def set_curtain_automatic():
     try:
@@ -70,6 +75,7 @@ def set_curtain_automatic():
         }), response.status_code
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 @mode_api.route("/curtain/mode/manual", methods=["POST"])
 def set_curtain_manual():

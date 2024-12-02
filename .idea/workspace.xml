@@ -5,28 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f1d9bdd8-956d-43d4-82e9-bd90d28788f0" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/database.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.env" beforeDir="false" afterPath="$PROJECT_DIR$/.env" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/4f3755a6-3bca-43bf-9162-0bacf1796eed.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/4f3755a6-3bca-43bf-9162-0bacf1796eed.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/api/threshold_api.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/api/esp32_cam_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/esp32_cam_api.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api/fan_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/fan_api.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/api/mode_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/mode_api.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/api/sensor_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/sensor_api.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/api/servo_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/servo_api.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/blueprint_setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/blueprint_setup.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/iot/ESP32DevModule/ESP32DevModule/ESP32DevModule.ino" beforeDir="false" afterPath="$PROJECT_DIR$/iot/ESP32DevModule/ESP32DevModule/ESP32DevModule.ino" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/iot/esp32cam/esp32cam.ino" beforeDir="false" afterPath="$PROJECT_DIR$/iot/esp32cam/esp32cam.ino" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/iot/esp8266/esp8266.ino" beforeDir="false" afterPath="$PROJECT_DIR$/iot/esp8266/esp8266.ino" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/sensor_data_fetcher.py" beforeDir="false" afterPath="$PROJECT_DIR$/sensor_data_fetcher.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/model/guava-more-aug.h5" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/model/guava-w-aug-esp32.h5" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/model/guava.h5" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/model/guava_model.keras" beforeDir="false" afterPath="$PROJECT_DIR$/static/model/guava_model.keras" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/model/my_model.keras" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/sub.py" beforeDir="false" afterPath="$PROJECT_DIR$/sub.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -78,28 +65,28 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_ADD_EXTERNAL_FILES": "true",
-    "Flask server.SmartFarmBackend.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "main",
-    "last_opened_file_path": "C:/Users/nguye/OneDrive - The University of Technology/Job/Py",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
+    &quot;Flask server.SmartFarmBackend.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/nguye/OneDrive - The University of Technology/Job/Py&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   },
-  "keyToStringList": {
-    "DatabaseDriversLRU": [
-      "sqlite"
+  &quot;keyToStringList&quot;: {
+    &quot;DatabaseDriversLRU&quot;: [
+      &quot;sqlite&quot;
     ]
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\nguye\OneDrive - The University of Technology\PBL4\SmartFarmBackend\static\model" />
@@ -207,6 +194,8 @@
       <workItem from="1732800824571" duration="48000" />
       <workItem from="1732805114098" duration="276000" />
       <workItem from="1732806332720" duration="32000" />
+      <workItem from="1733032207640" duration="7026000" />
+      <workItem from="1733114659583" duration="1824000" />
     </task>
     <servers />
   </component>

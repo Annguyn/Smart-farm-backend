@@ -9,6 +9,7 @@ sensor_api = Blueprint('sensor_api', __name__)
 load_dotenv()
 ESP32_IP = os.getenv('ESP32_IP')
 
+
 @sensor_api.route('/data', methods=['GET'])
 def get_data():
     try:
@@ -18,6 +19,7 @@ def get_data():
         return jsonify(data), 200
     except requests.exceptions.RequestException as e:
         return jsonify({'error': str(e)}), 500
+
 
 @sensor_api.route('/statistics', methods=['GET'])
 def statistics():

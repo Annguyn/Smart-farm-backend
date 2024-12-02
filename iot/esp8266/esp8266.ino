@@ -90,30 +90,29 @@ void setupEndpoints() {
 });
 
 
-  server.on("/servo/up", HTTP_POST, [](AsyncWebServerRequest *request) {
-    servo1Angle = constrain(servo1Angle + 15, 0, 180);
+ server.on("/servo/up", HTTP_POST, [](AsyncWebServerRequest *request) {
+    servo1Angle += 15;
     servo1.write(servo1Angle);
     request->send(200, "text/plain", "Servo moved up by 15 degrees");
-  });
+});
 
-  server.on("/servo/down", HTTP_POST, [](AsyncWebServerRequest *request) {
-    servo1Angle = constrain(servo1Angle - 15, 0, 180);
+server.on("/servo/down", HTTP_POST, [](AsyncWebServerRequest *request) {
+    servo1Angle -= 15;
     servo1.write(servo1Angle);
     request->send(200, "text/plain", "Servo moved down by 15 degrees");
-  });
+});
 
-  server.on("/servo/left", HTTP_POST, [](AsyncWebServerRequest *request) {
-    servo2Angle = constrain(servo2Angle - 15, 0, 180);
+server.on("/servo/left", HTTP_POST, [](AsyncWebServerRequest *request) {
+    servo2Angle -= 15;
     servo2.write(servo2Angle);
     request->send(200, "text/plain", "Servo moved left by 15 degrees");
-  });
+});
 
-  server.on("/servo/right", HTTP_POST, [](AsyncWebServerRequest *request) {
-    servo2Angle = constrain(servo2Angle + 15, 0, 180);
+server.on("/servo/right", HTTP_POST, [](AsyncWebServerRequest *request) {
+    servo2Angle += 15;
     servo2.write(servo2Angle);
     request->send(200, "text/plain", "Servo moved right by 15 degrees");
-  });
-
+});
   server.on("/pump/on", HTTP_POST, [](AsyncWebServerRequest *request) {
     digitalWrite(RELAY_PUMP_PIN, HIGH);
     request->send(200, "text/plain", "Pump is ON");

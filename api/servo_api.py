@@ -21,6 +21,7 @@ def move_servo_up():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
 @servo_api.route('/servo/down', methods=['POST'])
 def move_servo_down():
     try:
@@ -33,6 +34,7 @@ def move_servo_down():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
 @servo_api.route('/servo/left', methods=['POST'])
 def move_servo_left():
     try:
@@ -44,6 +46,7 @@ def move_servo_left():
         }), response.status_code
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 @servo_api.route('/servo/right', methods=['POST'])
 def move_servo_right():

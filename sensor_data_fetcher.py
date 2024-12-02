@@ -7,6 +7,7 @@ import os
 load_dotenv()
 ESP32_IP = os.getenv('ESP32_IP')
 
+
 def fetch_and_store_sensor_data():
     try:
         response = requests.get(f"http://{ESP32_IP}/data")
@@ -32,7 +33,8 @@ def fetch_and_store_sensor_data():
         cursor = conn.cursor()
         cursor.execute('''INSERT INTO sensor_status (timestamp, humidity, temperature, soil_moisture, distance, pump_status, light, rain_status, sound_status,  fan_status, curtain_status, automatic_fan, automatic_pump, automatic_curtain)
                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-                       (timestamp, humidity, temperature, soil_moisture, distance, pump_status, light, rain_status,  motor_status, fan_status, curtain_status, automatic_fan, automatic_pump, automatic_curtain))
+                       (timestamp, humidity, temperature, soil_moisture, distance, pump_status, light, rain_status,
+                        motor_status, fan_status, curtain_status, automatic_fan, automatic_pump, automatic_curtain))
         conn.commit()
         conn.close()
     except requests.exceptions.RequestException as e:

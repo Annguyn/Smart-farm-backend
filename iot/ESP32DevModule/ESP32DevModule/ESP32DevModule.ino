@@ -5,6 +5,7 @@
 #include <DFRobotDFPlayerMini.h>
 #include <HTTPClient.h>
 #include <ESPmDNS.h>
+#include <LiquidCrystal_I2C.h>
 #include <driver/adc.h> 
 
 #define DHTPIN 4
@@ -24,14 +25,20 @@ DHT dht(DHTPIN, DHTTYPE);
 DFRobotDFPlayerMini myDFPlayer;
 HardwareSerial mySerial(1);
 AsyncWebServer server(80);
+LiquidCrystal_I2C lcd(0x27, 16, 2); 
 
 const char *ssid = "ASPIRE";
 const char *password = "12345678";
 String esp8266_ip = "anfarm8266.local";
 
-bool pumpStatus = false, curtainStatus = false, fanStatus = false;
+bool pumpStatus = false, curtainStatus = false;
+int fanStatus = 0;
 bool automaticPump = false, automaticCurtain = false, automaticFan = false;
 int soundCounter = 0;
+int soilMoistureThreshold = 2000;
+int temperatureHighThreshold = 35;
+int temperatureLowThreshold = 20;
+int waterLevelThreshold = 2000;
 
 void setup() {
   Serial.begin(115200);
@@ -64,19 +71,22 @@ void setup() {
   if (MDNS.begin("anfarm32")) {
     Serial.println("mDNS responder started at http://anfarm32.local");
   }
-
+  lcd.begin(16, 2);  
+  lcd.backlight();  
+  lcd.clear();     
 
   adc1_config_width(ADC_WIDTH_BIT_12); 
   adc1_config_channel_atten(MOISTURE_CHANNEL, ADC_ATTEN_DB_11);
   adc1_config_channel_atten(LIGHT_CHANNEL, ADC_ATTEN_DB_11);
   adc1_config_channel_atten(SOUND_CHANNEL, ADC_ATTEN_DB_11);
   adc1_config_channel_atten(WATER_LEVEL_CHANNEL, ADC_ATTEN_DB_11); 
-
+  displaySensorData();
   setupEndpoints();
 }
 
 
 void loop() {
+  displaySensorData();
   handleAutomation();
 }
 
@@ -137,58 +147,94 @@ void setupEndpoints() {
     automaticCurtain = false; 
     request->send(200, "text/plain", "Curtain automatic mode set to OFF");
   });
+  server.on("/threshold/soilMoisture", HTTP_POST, [](AsyncWebServerRequest *request) {
+      if (request->hasParam("value", true)) {
+        soilMoistureThreshold = request->getParam("value", true)->value().toInt();
+        request->send(200, "text/plain", "Soil moisture threshold set to " + String(soilMoistureThreshold));
+        Serial.println("Soil moisture threshold updated: " + String(soilMoistureThreshold));
+      } else {
+        request->send(400, "text/plain", "Missing 'value' parameter");
+      }
+    });
 
+    // Endpoint để cập nhật ngưỡng nhiệt độ cao
+    server.on("/threshold/temperatureHigh", HTTP_POST, [](AsyncWebServerRequest *request) {
+      if (request->hasParam("value", true)) {
+        temperatureHighThreshold = request->getParam("value", true)->value().toInt();
+        request->send(200, "text/plain", "High temperature threshold set to " + String(temperatureHighThreshold));
+        Serial.println("High temperature threshold updated: " + String(temperatureHighThreshold));
+      } else {
+        request->send(400, "text/plain", "Missing 'value' parameter");
+      }
+    });
+
+    server.on("/threshold/temperatureLow", HTTP_POST, [](AsyncWebServerRequest *request) {
+      if (request->hasParam("value", true)) {
+        temperatureLowThreshold = request->getParam("value", true)->value().toInt();
+        request->send(200, "text/plain", "Low temperature threshold set to " + String(temperatureLowThreshold));
+        Serial.println("Low temperature threshold updated: " + String(temperatureLowThreshold));
+      } else {
+        request->send(400, "text/plain", "Missing 'value' parameter");
+      }
+    });
+
+    server.on("/threshold/waterLevel", HTTP_POST, [](AsyncWebServerRequest *request) {
+      if (request->hasParam("value", true)) {
+        waterLevelThreshold = request->getParam("value", true)->value().toInt();
+        request->send(200, "text/plain", "Water level threshold set to " + String(waterLevelThreshold));
+        Serial.println("Water level threshold updated: " + String(waterLevelThreshold));
+      } else {
+        request->send(400, "text/plain", "Missing 'value' parameter");
+      }
+    });
   server.begin();
 }
 
 void handleAutomation() {
     if (automaticPump) {
         int soilMoisture = adc1_get_raw(MOISTURE_CHANNEL);
-        if (soilMoisture > 2000 && !pumpStatus) {
+        if (soilMoisture > soilMoistureThreshold && !pumpStatus) {
             handlePump(true, nullptr);
             playSpeakerNotification("low_humidity");
-        } else if (soilMoisture <= 2000 && pumpStatus) {
+        } else if (soilMoisture <= soilMoistureThreshold && pumpStatus) {
             handlePump(false, nullptr);
             playSpeakerNotification("high_humidity");
         }
     }
 
     if (automaticFan) {
-        float temperature = dht.readTemperature();
-        if (temperature > 35 && !fanStatus) {
-            handleFan(255, nullptr);
-            playSpeakerNotification("high_temperature");
-        } else if (temperature <= 20 && fanStatus) {
-            handleFan(0, nullptr);
-            playSpeakerNotification("low_temperature");
-        }
+    float temperature = dht.readTemperature();
+    if (temperature > temperatureHighThreshold && fanStatus == 0) {
+        handleFan(255, nullptr); 
+        playSpeakerNotification("high_temperature");
+    } else if (temperature <= temperatureLowThreshold && fanStatus > 0) {
+        handleFan(0, nullptr); 
+        playSpeakerNotification("low_temperature");
     }
+}
+
 
     if (automaticCurtain) {
         int waterLevel = adc1_get_raw(WATER_LEVEL_CHANNEL);
-        if (waterLevel > 2000 && !curtainStatus) {
+        if (waterLevel > waterLevelThreshold && !curtainStatus) {
             handleCurtain(true, nullptr);
-        } else if (waterLevel <= 2000 && curtainStatus) {
+        } else if (waterLevel <= waterLevelThreshold && curtainStatus) {
             handleCurtain(false, nullptr);
         }
     }
 }
 
-
-
-
 void handleFan(int speed, AsyncWebServerRequest *request) {
-  fanStatus = (speed > 0); 
-  speed = constrain(speed, 0, 255); 
-  String payload = "speed=" + String(speed);
+  fanStatus = constrain(speed, 0, 255);
+  String payload = "speed=" + String(fanStatus);
   Serial.println("Sending fan control request with payload: " + payload);
 
   sendRequest("/fan/set", payload);
 
-  playSpeakerNotification(fanStatus ? "open_fan" : "off_fan");
+  playSpeakerNotification(fanStatus > 0 ? "open_fan" : "off_fan");
 
   if (request) {
-    String response = "Fan speed set to " + String(speed);
+    String response = "Fan speed set to " + String(fanStatus);
     request->send(200, "text/plain", response);
     Serial.println("Response sent to client: " + response);
   }
@@ -249,13 +295,32 @@ void playSpeakerNotification(String action) {
     else if (action == "close_curtain") index = 11;
 
     if (index > 0) {
-        myDFPlayer.play(index); 
+        myDFPlayer.play(index);  
         Serial.println("Playing audio index: " + String(index));
+
+        lcd.clear();
+        lcd.setCursor(0, 0);
+        lcd.print("Action: ");
+        lcd.print(action);
+        
+        delay(60000);  
+        displaySensorData();
     } else {
         Serial.println("No valid audio file for action: " + action);
     }
 }
 
 
+void displaySensorData() {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Soil: ");
+  lcd.print(adc1_get_raw(MOISTURE_CHANNEL));
+
+  lcd.setCursor(0, 1);
+  lcd.print("Temp: ");
+  lcd.print(dht.readTemperature());
+  delay(2000); 
+}
 
 

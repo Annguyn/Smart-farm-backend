@@ -17,6 +17,7 @@ esp32_cam_api = Blueprint('esp32_cam_api', __name__)
 load_dotenv()
 ESP32_CAM_URL = os.getenv('ESP32_CAM_URL')
 
+
 @esp32_cam_api.route('/capture', methods=['GET'])
 def capture_handler():
     try:
@@ -39,9 +40,11 @@ def capture_handler():
     except cv2.error as e:
         return jsonify({'error': 'OpenCV error: ' + str(e)}), 500
 
+
 @esp32_cam_api.route('/stream')
 def stream_handler():
     return Response(stream_video(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
 
 def stream_video():
     while True:
@@ -60,6 +63,7 @@ def stream_video():
         except requests.exceptions.RequestException as e:
             print(f"Error: {e}")
             time.sleep(1)
+
 
 @esp32_cam_api.route('/predict', methods=['POST'])
 def predict():
@@ -87,6 +91,7 @@ def predict():
         return jsonify({'error': 'Failed to decode image from camera'}), 500
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 @esp32_cam_api.route('/predict_file', methods=['POST'])
 def predict_file():

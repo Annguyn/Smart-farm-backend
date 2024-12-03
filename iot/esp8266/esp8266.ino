@@ -12,13 +12,13 @@
 #define STEPS_PER_REV 2048   
 
 // AccelStepper curtainStepper(AccelStepper::HALF4WIRE, D5, D6, D7, D8);
-Stepper curtainStepper(STEPS_PER_REV, D5, D7, D6, D8);
+Stepper curtainStepper(STEPS_PER_REV, D5, D6, D7, D8);
 
 Servo servo1;
 Servo servo2;
 
-const char* ssid = "ASPIRE";
-const char* password = "12345678";
+const char* ssid = "OYE TRA SUA";
+const char* password = "39393939";
 const char* host = "anfarm8266"; 
 
 AsyncWebServer server(80);

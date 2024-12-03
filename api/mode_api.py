@@ -1,7 +1,7 @@
 import os
 
 from dotenv import load_dotenv
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify , current_app
 import requests
 
 mode_api = Blueprint('mode_api', __name__)
@@ -16,6 +16,7 @@ automaticPump = False
 def set_fan_automatic():
     try:
         url = f"http://{ESP32_IP}/fan/automatic/on"
+        current_app.config['automaticFan'] = True
         response = requests.post(url, data="")
         return jsonify({
             "message": "Fan automatic mode is ON",
@@ -29,6 +30,7 @@ def set_fan_automatic():
 def set_fan_manual():
     try:
         url = f"http://{ESP32_IP}/fan/automatic/off"
+        current_app.config['automaticFan'] = False
         response = requests.post(url, data="")
         return jsonify({
             "message": "Fan manual mode is OFF",
@@ -42,6 +44,7 @@ def set_fan_manual():
 def set_pump_automatic():
     try:
         url = f"http://{ESP32_IP}/pump/automatic/on"
+        current_app.config['automaticPump'] = True
         response = requests.post(url, data="")
         return jsonify({
             "message": "Pump automatic mode is ON",
@@ -55,6 +58,7 @@ def set_pump_automatic():
 def set_pump_manual():
     try:
         url = f"http://{ESP32_IP}/pump/automatic/off"
+        current_app.config['automaticPump'] = False
         response = requests.post(url, data="")
         return jsonify({
             "message": "Pump manual mode is OFF",
@@ -68,6 +72,7 @@ def set_pump_manual():
 def set_curtain_automatic():
     try:
         url = f"http://{ESP32_IP}/curtain/automatic/on"
+        current_app.config['automaticCurtain'] = True
         response = requests.post(url, data="")
         return jsonify({
             "message": "Curtain automatic mode is ON",
@@ -81,6 +86,7 @@ def set_curtain_automatic():
 def set_curtain_manual():
     try:
         url = f"http://{ESP32_IP}/curtain/automatic/off"
+        automaticCurtain = False
         response = requests.post(url, data="")
         return jsonify({
             "message": "Curtain manual mode is OFF",

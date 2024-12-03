@@ -4,8 +4,10 @@
 #include <WiFi.h>
 #include <DFRobotDFPlayerMini.h>
 #include <HTTPClient.h>
+#include <ESP32Servo.h>
 #include <ESPmDNS.h>
-#include <LiquidCrystal_I2C.h>
+#include <Stepper.h>
+#include <LiquidCrystal_I2C.h> 
 #include <driver/adc.h> 
 
 #define DHTPIN 4
@@ -21,20 +23,34 @@
 #define ECHO_PIN 16
 #define TRIG_PIN 17
 
+//  Động cơ
+#define SERVO_PIN1 21
+#define SERVO_PIN2 22
+#define RELAY_PUMP_PIN 19
+#define FAN_PWM_PIN 18
+#define STEPS_PER_REV 2048
+
+
 DHT dht(DHTPIN, DHTTYPE);
 DFRobotDFPlayerMini myDFPlayer;
 HardwareSerial mySerial(1);
 AsyncWebServer server(80);
 LiquidCrystal_I2C lcd(0x27, 16, 2); 
 
-const char *ssid = "ASPIRE";
-const char *password = "12345678";
-String esp8266_ip = "anfarm8266.local";
+Servo servo1, servo2;
+Stepper curtainStepper(STEPS_PER_REV, 14, 25, 26, 27);
 
+const char *ssid = "OYE TRA SUA";
+const char *password = "39393939";
+int curtainDirection = 0; // 1 for open, -1 for close
 bool pumpStatus = false, curtainStatus = false;
 int fanStatus = 0;
 bool automaticPump = false, automaticCurtain = false, automaticFan = false;
 int soundCounter = 0;
+int servo1Angle = 90 ;
+int servo2Angle = 90 ;
+bool curtainAction = false;
+int curtainStepsRemaining = 0;
 int soilMoistureThreshold = 2000;
 int temperatureHighThreshold = 35;
 int temperatureLowThreshold = 20;
@@ -52,9 +68,14 @@ void setup() {
   void handleFan(int speed, AsyncWebServerRequest *request= nullptr);
   void handlePump(bool status, AsyncWebServerRequest *request = nullptr);
   void handleCurtain(bool status, AsyncWebServerRequest *request = nullptr);
-  void sendRequest(String endpoint, String payload = "");
 
   dht.begin();
+  servo1.attach(SERVO_PIN1);
+  servo2.attach(SERVO_PIN2);
+  curtainStepper.setSpeed(10);
+  pinMode(RELAY_PUMP_PIN, OUTPUT);
+  pinMode(FAN_PWM_PIN, OUTPUT);
+
   mySerial.begin(9600, SERIAL_8N1, SPEAKER_RX_PIN, SPEAKER_TX_PIN);  // RX = 33, TX = 32
   if (myDFPlayer.begin(mySerial)) {
     Serial.println("DFPlayer Mini initialized successfully.");
@@ -64,6 +85,7 @@ void setup() {
     Serial.println("1. Kiểm tra kết nối RX/TX.");
     Serial.println("2. Đảm bảo thẻ nhớ microSD đúng định dạng.");
   }
+
 
   pinMode(TRIG_PIN, OUTPUT);
   pinMode(ECHO_PIN, INPUT);
@@ -86,191 +108,197 @@ void setup() {
 
 
 void loop() {
+  if (curtainAction && curtainStepsRemaining > 0) {
+    long steps = curtainDirection * 512;  
+    curtainStepper.step(steps);
+
+    curtainStepsRemaining -= abs(steps); 
+    yield();
+  }
+
+  if (curtainStepsRemaining <= 0 && curtainAction) {
+    curtainAction = false; 
+  }
   displaySensorData();
   handleAutomation();
 }
 
 void setupEndpoints() {
-  server.on("/data", HTTP_GET, [](AsyncWebServerRequest *request) {
-    String response = "{";
-    response += "\"soilMoisture\":" + String(adc1_get_raw(MOISTURE_CHANNEL)) + ",";
-    response += "\"temperature\":" + String(dht.readTemperature()) + ",";
-    response += "\"humidity\":" + String(dht.readHumidity()) + ",";
-    response += "\"light\":" + String(adc1_get_raw(LIGHT_CHANNEL)) + ",";        
-    response += "\"waterLevel\":" + String(adc1_get_raw(WATER_LEVEL_CHANNEL)) + ",";
-    response += "\"soundStatus\":" + String(adc1_get_raw(SOUND_CHANNEL)) + ",";  
-    response += "\"fanStatus\":" + String(fanStatus) + ",";
-    response += "\"pumpStatus\":" + String(pumpStatus) + ",";
-    response += "\"curtainStatus\":" + String(curtainStatus) + ",";
-    response += "\"distance\":" + String(readDistance()) + ",";
-    response += "\"automaticFan\":" + String(automaticFan) + ",";
-    response += "\"automaticPump\":" + String(automaticPump) + ",";
-    response += "\"automaticCurtain\":" + String(automaticCurtain) + "}";
-    request->send(200, "application/json", response);
-  });
-  server.on("/fan/set", HTTP_POST, [](AsyncWebServerRequest *request) {
-    if (request->hasParam("speed", true)) {
-      int speed = request->getParam("speed", true)->value().toInt();
-      handleFan(speed, request);
-    } else {
-      request->send(400, "text/plain", "Missing 'speed' parameter");
-    }
-  });
-  server.on("/fan/automatic/on", HTTP_POST, [](AsyncWebServerRequest *request) {
-    automaticFan = true;
-    request->send(200, "text/plain", "Fan automatic mode set to ON");
-  });
-
-  server.on("/fan/automatic/off", HTTP_POST, [](AsyncWebServerRequest *request) {
-    automaticFan = false;
-    request->send(200, "text/plain", "Fan automatic mode set to OFF");
-  });
-
-  server.on("/pump/on", HTTP_POST, [](AsyncWebServerRequest *request) { handlePump(true, request); });
-  server.on("/pump/off", HTTP_POST, [](AsyncWebServerRequest *request) { handlePump(false, request); });
-  server.on("/pump/automatic/on", HTTP_POST, [](AsyncWebServerRequest *request) {
-    automaticPump = true; 
-    request->send(200, "text/plain", "Pump automatic mode set to ON");
-  });
-
-  server.on("/pump/automatic/off", HTTP_POST, [](AsyncWebServerRequest *request) {
-    automaticPump = false; 
-    request->send(200, "text/plain", "Pump automatic mode set to OFF");
-  });
-  server.on("/curtain/open", HTTP_POST, [](AsyncWebServerRequest *request) { handleCurtain(true, request); });
-  server.on("/curtain/close", HTTP_POST, [](AsyncWebServerRequest *request) { handleCurtain(false, request); });
-  server.on("/curtain/automatic/on", HTTP_POST, [](AsyncWebServerRequest *request) {
-    automaticCurtain = true; 
-    request->send(200, "text/plain", "Curtain automatic mode set to ON");
-  });
-  server.on("/curtain/automatic/off", HTTP_POST, [](AsyncWebServerRequest *request) {
-    automaticCurtain = false; 
-    request->send(200, "text/plain", "Curtain automatic mode set to OFF");
-  });
-  server.on("/threshold/soilMoisture", HTTP_POST, [](AsyncWebServerRequest *request) {
-      if (request->hasParam("value", true)) {
-        soilMoistureThreshold = request->getParam("value", true)->value().toInt();
-        request->send(200, "text/plain", "Soil moisture threshold set to " + String(soilMoistureThreshold));
-        Serial.println("Soil moisture threshold updated: " + String(soilMoistureThreshold));
-      } else {
-        request->send(400, "text/plain", "Missing 'value' parameter");
-      }
+    // Endpoint to get data
+    server.on("/data", HTTP_GET, [](AsyncWebServerRequest *request) {
+        String response = "{";
+        response += "\"soilMoisture\":" + String(adc1_get_raw(MOISTURE_CHANNEL)) + ",";
+        response += "\"temperature\":" + String(dht.readTemperature()) + ",";
+        response += "\"humidity\":" + String(dht.readHumidity()) + ",";
+        response += "\"light\":" + String(adc1_get_raw(LIGHT_CHANNEL)) + ",";
+        response += "\"waterLevel\":" + String(adc1_get_raw(WATER_LEVEL_CHANNEL)) + ",";
+        response += "\"soundStatus\":" + String(adc1_get_raw(SOUND_CHANNEL)) + ",";
+        response += "\"fanStatus\":" + String(fanStatus) + ",";
+        response += "\"pumpStatus\":" + String(pumpStatus) + ",";
+        response += "\"curtainStatus\":" + String(curtainStatus) + ",";
+        response += "\"distance\":" + String(readDistance()) + ",";
+        response += "\"automaticFan\":" + String(automaticFan) + ",";
+        response += "\"automaticPump\":" + String(automaticPump) + ",";
+        response += "\"automaticCurtain\":" + String(automaticCurtain) + "}";
+        request->send(200, "application/json", response);
     });
 
-    // Endpoint để cập nhật ngưỡng nhiệt độ cao
-    server.on("/threshold/temperatureHigh", HTTP_POST, [](AsyncWebServerRequest *request) {
-      if (request->hasParam("value", true)) {
-        temperatureHighThreshold = request->getParam("value", true)->value().toInt();
-        request->send(200, "text/plain", "High temperature threshold set to " + String(temperatureHighThreshold));
-        Serial.println("High temperature threshold updated: " + String(temperatureHighThreshold));
-      } else {
-        request->send(400, "text/plain", "Missing 'value' parameter");
-      }
+    // Fan endpoints
+    server.on("/fan/set", HTTP_POST, [](AsyncWebServerRequest *request) {
+        if (request->hasParam("speed", true)) {
+            String speedStr = request->getParam("speed", true)->value();
+            int speed = constrain(speedStr.toInt(), 0, 255);
+            analogWrite(FAN_PWM_PIN, speed);
+            fanStatus = speed;
+            playSpeakerNotification("open_fan");
+            request->send(200, "application/json", "{\"status\":\"success\",\"message\":\"Fan speed set to " + String(speed) + "\"}");
+        } else {
+            playSpeakerNotification("off_fan");
+            request->send(400, "application/json", "{\"status\":\"error\",\"message\":\"Missing 'speed' parameter\"}");
+        }
     });
 
-    server.on("/threshold/temperatureLow", HTTP_POST, [](AsyncWebServerRequest *request) {
-      if (request->hasParam("value", true)) {
-        temperatureLowThreshold = request->getParam("value", true)->value().toInt();
-        request->send(200, "text/plain", "Low temperature threshold set to " + String(temperatureLowThreshold));
-        Serial.println("Low temperature threshold updated: " + String(temperatureLowThreshold));
-      } else {
-        request->send(400, "text/plain", "Missing 'value' parameter");
-      }
+    server.on("/fan/automatic", HTTP_POST, [](AsyncWebServerRequest *request) {
+        if (request->hasParam("status", true)) {
+            String status = request->getParam("status", true)->value();
+            automaticFan = (status == "on");
+            playSpeakerNotification("pump_on");
+            request->send(200, "application/json", "{\"status\":\"success\",\"automaticFan\":" + String(automaticFan) + "}");
+        } else {
+            playSpeakerNotification("stable_conditions");
+            request->send(400, "application/json", "{\"status\":\"error\",\"message\":\"Missing 'status' parameter\"}");
+        }
     });
 
-    server.on("/threshold/waterLevel", HTTP_POST, [](AsyncWebServerRequest *request) {
-      if (request->hasParam("value", true)) {
-        waterLevelThreshold = request->getParam("value", true)->value().toInt();
-        request->send(200, "text/plain", "Water level threshold set to " + String(waterLevelThreshold));
-        Serial.println("Water level threshold updated: " + String(waterLevelThreshold));
-      } else {
-        request->send(400, "text/plain", "Missing 'value' parameter");
-      }
+    // Pump endpoints
+    server.on("/pump", HTTP_POST, [](AsyncWebServerRequest *request) {
+        if (request->hasParam("status", true)) {
+            String status = request->getParam("status", true)->value();
+            pumpStatus = (status == "on");
+            digitalWrite(RELAY_PUMP_PIN, pumpStatus ? HIGH : LOW);
+            request->send(200, "application/json", "{\"status\":\"success\",\"pumpStatus\":" + String(pumpStatus) + "}");
+        } else {
+            request->send(400, "application/json", "{\"status\":\"error\",\"message\":\"Missing 'status' parameter\"}");
+        }
     });
-  server.begin();
+
+    server.on("/pump/automatic", HTTP_POST, [](AsyncWebServerRequest *request) {
+        if (request->hasParam("status", true)) {
+            String status = request->getParam("status", true)->value();
+            automaticPump = (status == "on");
+            request->send(200, "application/json", "{\"status\":\"success\",\"automaticPump\":" + String(automaticPump) + "}");
+        } else {
+            request->send(400, "application/json", "{\"status\":\"error\",\"message\":\"Missing 'status' parameter\"}");
+        }
+    });
+
+    // Curtain endpoints
+    server.on("/curtain", HTTP_POST, [](AsyncWebServerRequest *request) {
+        if (request->hasParam("action", true)) {
+            String action = request->getParam("action", true)->value();
+            if (action == "open") {
+                curtainAction = true;
+                curtainDirection = 1;
+                playSpeakerNotification("open_curtain");
+                curtainStepsRemaining = 40960;
+                request->send(200, "application/json", "{\"status\":\"success\",\"message\":\"Curtain is opening\"}");
+            } else if (action == "close") {
+                curtainAction = true;
+                playSpeakerNotification("close_curtain");
+                curtainDirection = -1;
+                curtainStepsRemaining = 40960;
+                request->send(200, "application/json", "{\"status\":\"success\",\"message\":\"Curtain is closing\"}");
+            } else {
+                request->send(400, "application/json", "{\"status\":\"error\",\"message\":\"Invalid 'action' value\"}");
+            }
+        } else {
+            request->send(400, "application/json", "{\"status\":\"error\",\"message\":\"Missing 'action' parameter\"}");
+        }
+    });
+
+    server.on("/curtain/automatic", HTTP_POST, [](AsyncWebServerRequest *request) {
+        if (request->hasParam("status", true)) {
+            String status = request->getParam("status", true)->value();
+            automaticCurtain = (status == "on");
+            request->send(200, "application/json", "{\"status\":\"success\",\"automaticCurtain\":" + String(automaticCurtain) + "}");
+        } else {
+            request->send(400, "application/json", "{\"status\":\"error\",\"message\":\"Missing 'status' parameter\"}");
+        }
+    });
+
+    // Servo endpoints
+    server.on("/servo", HTTP_POST, [](AsyncWebServerRequest *request) {
+        if (request->hasParam("direction", true)) {
+            String direction = request->getParam("direction", true)->value();
+            if (direction == "up") {
+                servo1Angle = constrain(servo1Angle + 15, 0, 180);
+                servo1.write(servo1Angle);
+                request->send(200, "application/json", "{\"status\":\"success\",\"servo1Angle\":" + String(servo1Angle) + "}");
+            } else if (direction == "down") {
+                servo1Angle = constrain(servo1Angle - 15, 0, 180);
+                servo1.write(servo1Angle);
+                request->send(200, "application/json", "{\"status\":\"success\",\"servo1Angle\":" + String(servo1Angle) + "}");
+            } else if (direction == "left") {
+                servo2Angle = constrain(servo2Angle - 15, 0, 180);
+                servo2.write(servo2Angle);
+                request->send(200, "application/json", "{\"status\":\"success\",\"servo2Angle\":" + String(servo2Angle) + "}");
+            } else if (direction == "right") {
+                servo2Angle = constrain(servo2Angle + 15, 0, 180);
+                servo2.write(servo2Angle);
+                request->send(200, "application/json", "{\"status\":\"success\",\"servo2Angle\":" + String(servo2Angle) + "}");
+            } else {
+                request->send(400, "application/json", "{\"status\":\"error\",\"message\":\"Invalid 'direction' value\"}");
+            }
+        } else {
+            request->send(400, "application/json", "{\"status\":\"error\",\"message\":\"Missing 'direction' parameter\"}");
+        }
+    });
+    server.begin();
 }
-
 void handleAutomation() {
+    // Automatic Pump Control
     if (automaticPump) {
         int soilMoisture = adc1_get_raw(MOISTURE_CHANNEL);
         if (soilMoisture > soilMoistureThreshold && !pumpStatus) {
-            handlePump(true, nullptr);
+            digitalWrite(RELAY_PUMP_PIN, HIGH); // Turn the pump ON
+            pumpStatus = true;                 // Update pump status
             playSpeakerNotification("low_humidity");
         } else if (soilMoisture <= soilMoistureThreshold && pumpStatus) {
-            handlePump(false, nullptr);
+            digitalWrite(RELAY_PUMP_PIN, LOW); // Turn the pump OFF
+            pumpStatus = false;                // Update pump status
             playSpeakerNotification("high_humidity");
         }
     }
-
     if (automaticFan) {
-    float temperature = dht.readTemperature();
-    if (temperature > temperatureHighThreshold && fanStatus == 0) {
-        handleFan(255, nullptr); 
-        playSpeakerNotification("high_temperature");
-    } else if (temperature <= temperatureLowThreshold && fanStatus > 0) {
-        handleFan(0, nullptr); 
-        playSpeakerNotification("low_temperature");
+        float temperature = dht.readTemperature();
+        if (temperature > temperatureHighThreshold && fanStatus == 0) {
+            analogWrite(FAN_PWM_PIN, 255); 
+            fanStatus = 255;             
+            playSpeakerNotification("high_temperature");
+        } else if (temperature <= temperatureLowThreshold && fanStatus > 0) {
+            analogWrite(FAN_PWM_PIN, 0); 
+            fanStatus = 0;          
+            playSpeakerNotification("low_temperature");
+        }
     }
-}
-
-
     if (automaticCurtain) {
         int waterLevel = adc1_get_raw(WATER_LEVEL_CHANNEL);
         if (waterLevel > waterLevelThreshold && !curtainStatus) {
-            handleCurtain(true, nullptr);
+            curtainAction = true;
+            curtainDirection = 1;
+            curtainStepsRemaining = 40960;
+            curtainStatus = true; 
+            playSpeakerNotification("open_curtain");
         } else if (waterLevel <= waterLevelThreshold && curtainStatus) {
-            handleCurtain(false, nullptr);
+            curtainAction = true;
+            curtainDirection = -1; 
+            curtainStepsRemaining = 40960;
+            curtainStatus = false; 
+            playSpeakerNotification("close_curtain");
         }
     }
 }
 
-void handleFan(int speed, AsyncWebServerRequest *request) {
-  fanStatus = constrain(speed, 0, 255);
-  String payload = "speed=" + String(fanStatus);
-  Serial.println("Sending fan control request with payload: " + payload);
-
-  sendRequest("/fan/set", payload);
-
-  playSpeakerNotification(fanStatus > 0 ? "open_fan" : "off_fan");
-
-  if (request) {
-    String response = "Fan speed set to " + String(fanStatus);
-    request->send(200, "text/plain", response);
-    Serial.println("Response sent to client: " + response);
-  }
-}
-
-void handlePump(bool status, AsyncWebServerRequest *request) {
-    pumpStatus = status;
-    sendRequest("/pump/" + String(status ? "on" : "off"), "");
-    playSpeakerNotification(status ? "pump_on" : "stable_conditions");  
-    if (request) request->send(200, "text/plain", String("Pump is ") + (status ? "ON" : "OFF"));
-}
-
-void handleCurtain(bool status, AsyncWebServerRequest *request) {
-    curtainStatus = status;
-    sendRequest("/curtain/" + String(status ? "open" : "close"), "");
-    playSpeakerNotification(status ? "open_curtain" : "close_curtain"); 
-    if (request) request->send(200, "text/plain", String("Curtain is ") + (status ? "Opening" : "Closing"));
-}
-
-
-
-void sendRequest(String endpoint, String payload) {
-  HTTPClient http;
-  String url = "http://" + esp8266_ip + endpoint;
-  http.begin(url);
-  http.addHeader("Content-Type", "application/x-www-form-urlencoded");
-  int httpCode = http.POST(payload); 
-  if (httpCode > 0) {
-    Serial.println("HTTP Response Code: " + String(httpCode));
-    String response = http.getString();
-    Serial.println("Response: " + response);
-  } else {
-    Serial.println("HTTP Request Failed: " + String(httpCode));
-  }
-  http.end();
-}
 int readDistance() {
   digitalWrite(TRIG_PIN, LOW);
   delayMicroseconds(2);
@@ -279,7 +307,6 @@ int readDistance() {
   digitalWrite(TRIG_PIN, LOW);
   return pulseIn(ECHO_PIN, HIGH) * 0.034 / 2;
 }
-
 void playSpeakerNotification(String action) {
     int index = 0;
     if (action == "low_humidity") index = 1;
@@ -293,30 +320,23 @@ void playSpeakerNotification(String action) {
     else if (action == "off_fan") index = 9;
     else if (action == "open_curtain") index = 10;
     else if (action == "close_curtain") index = 11;
-
     if (index > 0) {
         myDFPlayer.play(index);  
         Serial.println("Playing audio index: " + String(index));
-
         lcd.clear();
         lcd.setCursor(0, 0);
         lcd.print("Action: ");
         lcd.print(action);
-        
-        delay(60000);  
         displaySensorData();
     } else {
         Serial.println("No valid audio file for action: " + action);
     }
 }
-
-
 void displaySensorData() {
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("Soil: ");
   lcd.print(adc1_get_raw(MOISTURE_CHANNEL));
-
   lcd.setCursor(0, 1);
   lcd.print("Temp: ");
   lcd.print(dht.readTemperature());

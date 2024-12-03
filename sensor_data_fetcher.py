@@ -34,7 +34,7 @@ def fetch_and_store_sensor_data():
         cursor.execute('''INSERT INTO sensor_status (timestamp, humidity, temperature, soil_moisture, distance, pump_status, light, rain_status, sound_status,  fan_status, curtain_status, automatic_fan, automatic_pump, automatic_curtain)
                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
                        (timestamp, humidity, temperature, soil_moisture, distance, pump_status, light, rain_status,
-                        motor_status, fan_status, curtain_status, automatic_fan, automatic_pump, automatic_curtain))
+                        sound_status, fan_status, curtain_status, automatic_fan, automatic_pump, automatic_curtain))
         conn.commit()
         conn.close()
     except requests.exceptions.RequestException as e:

@@ -5,13 +5,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f1d9bdd8-956d-43d4-82e9-bd90d28788f0" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/api/threshold_api.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/status_device.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api/esp32_cam_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/esp32_cam_api.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/curtain_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/curtain_api.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/fan_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/fan_api.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/api/mode_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/mode_api.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/pump_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/pump_api.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/api/sensor_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/sensor_api.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/api/servo_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/servo_api.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/iot/ESP32DevModule/ESP32DevModule/ESP32DevModule.ino" beforeDir="false" afterPath="$PROJECT_DIR$/iot/ESP32DevModule/ESP32DevModule/ESP32DevModule.ino" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/iot/esp32cam/esp32cam.ino" beforeDir="false" afterPath="$PROJECT_DIR$/iot/esp32cam/esp32cam.ino" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/iot/esp8266/esp8266.ino" beforeDir="false" afterPath="$PROJECT_DIR$/iot/esp8266/esp8266.ino" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/sensor_data_fetcher.py" beforeDir="false" afterPath="$PROJECT_DIR$/sensor_data_fetcher.py" afterDir="false" />
     </list>
@@ -195,7 +199,11 @@
       <workItem from="1732805114098" duration="276000" />
       <workItem from="1732806332720" duration="32000" />
       <workItem from="1733032207640" duration="7026000" />
-      <workItem from="1733114659583" duration="1824000" />
+      <workItem from="1733114659583" duration="9782000" />
+      <workItem from="1733126264368" duration="12254000" />
+      <workItem from="1733150999560" duration="1000" />
+      <workItem from="1733226242183" duration="6000" />
+      <workItem from="1733236250053" duration="1068000" />
     </task>
     <servers />
   </component>

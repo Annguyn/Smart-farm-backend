@@ -13,7 +13,7 @@
 // ===================
 // Select camera model
 // ===================
-#define CAMERA_MODEL_AI_THINKER // Has PSRAM
+#define CAMERA_MODEL_AI_THINKER  // Has PSRAM
 #include "camera_pins.h"
 
 // ===========================
@@ -50,8 +50,8 @@ void setup() {
   config.pin_pwdn = PWDN_GPIO_NUM;
   config.pin_reset = RESET_GPIO_NUM;
   config.xclk_freq_hz = 20000000;
-  config.frame_size = FRAMESIZE_HD;  
-  config.pixel_format = PIXFORMAT_JPEG; 
+  config.frame_size = FRAMESIZE_HD;
+  config.pixel_format = PIXFORMAT_JPEG;
   config.grab_mode = CAMERA_GRAB_WHEN_EMPTY;
   config.fb_location = CAMERA_FB_IN_PSRAM;
   config.jpeg_quality = 12;
@@ -75,14 +75,14 @@ void setup() {
 
   sensor_t *s = esp_camera_sensor_get();
   if (s->id.PID == OV3660_PID) {
-    s->set_vflip(s, 1);       
-    s->set_brightness(s, 1);  
-    s->set_saturation(s, -2); 
+    s->set_vflip(s, 1);
+    s->set_brightness(s, 1);
+    s->set_saturation(s, -2);
   }
 
-  #if defined(LED_GPIO_NUM)
-    setupLedFlash(LED_GPIO_NUM);
-  #endif
+#if defined(LED_GPIO_NUM)
+  setupLedFlash(LED_GPIO_NUM);
+#endif
 
   WiFi.begin(ssid, password);
   WiFi.setSleep(false);

@@ -1,4 +1,6 @@
 from flask import Flask
+
+from api.led_api import led_api
 from api.fan_api import fan_api
 from api.mode_api import mode_api
 from api.pump_api import pump_api
@@ -16,3 +18,4 @@ def register_blueprints(app: Flask):
     app.register_blueprint(sensor_api)
     app.register_blueprint(servo_api)
     app.register_blueprint(mode_api)
+    app.register_blueprint(led_api)

@@ -6,9 +6,10 @@
 #include <HTTPClient.h>
 #include <ESP32Servo.h>
 #include <ESPmDNS.h>
-#include <Stepper.h>
-#include <LiquidCrystal_I2C.h> 
+// #include <Stepper.h>
 #include <driver/adc.h> 
+#include <AccelStepper.h>
+#include "esp_task_wdt.h"
 
 #define DHTPIN 4
 #define DHTTYPE DHT11
@@ -29,19 +30,24 @@
 #define RELAY_PUMP_PIN 19
 #define FAN_PWM_PIN 18
 #define STEPS_PER_REV 2048
+#define LED_PIN 23 
 
+bool ledStatus = false;
+bool automaticLight = false;
+int lightThreshold = 1500;
 
 DHT dht(DHTPIN, DHTTYPE);
 DFRobotDFPlayerMini myDFPlayer;
 HardwareSerial mySerial(1);
 AsyncWebServer server(80);
-LiquidCrystal_I2C lcd(0x27, 16, 2); 
 
 Servo servo1, servo2;
-Stepper curtainStepper(STEPS_PER_REV, 14, 25, 26, 27);
 
-const char *ssid = "OYE TRA SUA";
-const char *password = "39393939";
+AccelStepper curtainStepper(AccelStepper::FULL4WIRE, 25, 27, 26, 13);
+// Stepper curtainStepper(STEPS_PER_REV, 25, 26, 27, 13);
+
+const char *ssid = "ASPIRE";
+const char *password = "12345678";
 int curtainDirection = 0; // 1 for open, -1 for close
 bool pumpStatus = false, curtainStatus = false;
 int fanStatus = 0;
@@ -49,12 +55,12 @@ bool automaticPump = false, automaticCurtain = false, automaticFan = false;
 int soundCounter = 0;
 int servo1Angle = 90 ;
 int servo2Angle = 90 ;
-bool curtainAction = false;
+bool isCurtainActive = false;
 int curtainStepsRemaining = 0;
-int soilMoistureThreshold = 2000;
+int soilMoistureThreshold = 2400;
 int temperatureHighThreshold = 35;
 int temperatureLowThreshold = 20;
-int waterLevelThreshold = 2000;
+int waterLevelThreshold = 2400;
 
 void setup() {
   Serial.begin(115200);
@@ -70,11 +76,15 @@ void setup() {
   void handleCurtain(bool status, AsyncWebServerRequest *request = nullptr);
 
   dht.begin();
-  servo1.attach(SERVO_PIN1);
-  servo2.attach(SERVO_PIN2);
-  curtainStepper.setSpeed(10);
+  servo1.attach(SERVO_PIN1, 500, 2400);
+  servo2.attach(SERVO_PIN2, 500, 2400);
+  // curtainStepper.setSpeed(15);
   pinMode(RELAY_PUMP_PIN, OUTPUT);
   pinMode(FAN_PWM_PIN, OUTPUT);
+  digitalWrite(FAN_PWM_PIN,LOW);
+  digitalWrite(RELAY_PUMP_PIN,LOW);
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, LOW);
 
   mySerial.begin(9600, SERIAL_8N1, SPEAKER_RX_PIN, SPEAKER_TX_PIN);  // RX = 33, TX = 32
   if (myDFPlayer.begin(mySerial)) {
@@ -85,7 +95,13 @@ void setup() {
     Serial.println("1. Kiểm tra kết nối RX/TX.");
     Serial.println("2. Đảm bảo thẻ nhớ microSD đúng định dạng.");
   }
-
+   esp_task_wdt_config_t wdtConfig = {
+        .timeout_ms = 10000, 
+        .idle_core_mask = 0, 
+        .trigger_panic = true
+    };
+    esp_task_wdt_init(&wdtConfig);
+    esp_task_wdt_add(NULL); 
 
   pinMode(TRIG_PIN, OUTPUT);
   pinMode(ECHO_PIN, INPUT);
@@ -93,33 +109,30 @@ void setup() {
   if (MDNS.begin("anfarm32")) {
     Serial.println("mDNS responder started at http://anfarm32.local");
   }
-  lcd.begin(16, 2);  
-  lcd.backlight();  
-  lcd.clear();     
-
+  curtainStepper.setMaxSpeed(2000);
+  curtainStepper.setAcceleration(1000); 
   adc1_config_width(ADC_WIDTH_BIT_12); 
   adc1_config_channel_atten(MOISTURE_CHANNEL, ADC_ATTEN_DB_11);
   adc1_config_channel_atten(LIGHT_CHANNEL, ADC_ATTEN_DB_11);
   adc1_config_channel_atten(SOUND_CHANNEL, ADC_ATTEN_DB_11);
   adc1_config_channel_atten(WATER_LEVEL_CHANNEL, ADC_ATTEN_DB_11); 
-  displaySensorData();
   setupEndpoints();
 }
 
 
 void loop() {
-  if (curtainAction && curtainStepsRemaining > 0) {
-    long steps = curtainDirection * 512;  
-    curtainStepper.step(steps);
-
-    curtainStepsRemaining -= abs(steps); 
-    yield();
-  }
-
-  if (curtainStepsRemaining <= 0 && curtainAction) {
-    curtainAction = false; 
-  }
-  displaySensorData();
+  esp_task_wdt_reset(); 
+  if (curtainStepsRemaining > 0) {
+    curtainStepper.run();
+    vTaskDelay(pdMS_TO_TICKS(5));
+    if (curtainStepper.distanceToGo() == 0) {
+        curtainStepsRemaining -= 512;
+    }
+    if (curtainStepsRemaining <= 0) {
+        curtainStepper.stop();
+        curtainStepsRemaining = 0;
+    }
+}
   handleAutomation();
 }
 
@@ -139,6 +152,8 @@ void setupEndpoints() {
         response += "\"distance\":" + String(readDistance()) + ",";
         response += "\"automaticFan\":" + String(automaticFan) + ",";
         response += "\"automaticPump\":" + String(automaticPump) + ",";
+        response += "\"ledStatus\":" + String(ledStatus) + "," ;
+        response += "\"automaticLight\":" + String(automaticLight) + "," ;
         response += "\"automaticCurtain\":" + String(automaticCurtain) + "}";
         request->send(200, "application/json", response);
     });
@@ -172,15 +187,21 @@ void setupEndpoints() {
 
     // Pump endpoints
     server.on("/pump", HTTP_POST, [](AsyncWebServerRequest *request) {
-        if (request->hasParam("status", true)) {
-            String status = request->getParam("status", true)->value();
-            pumpStatus = (status == "on");
-            digitalWrite(RELAY_PUMP_PIN, pumpStatus ? HIGH : LOW);
-            request->send(200, "application/json", "{\"status\":\"success\",\"pumpStatus\":" + String(pumpStatus) + "}");
+    if (request->hasParam("status", true)) {
+        String status = request->getParam("status", true)->value();
+        pumpStatus = (status == "on");
+        digitalWrite(RELAY_PUMP_PIN, pumpStatus ? HIGH : LOW);
+        if (pumpStatus) {
+            playSpeakerNotification("pump_on"); 
         } else {
-            request->send(400, "application/json", "{\"status\":\"error\",\"message\":\"Missing 'status' parameter\"}");
+            playSpeakerNotification("stable_conditions");
         }
-    });
+        request->send(200, "application/json", "{\"status\":\"success\",\"pumpStatus\":" + String(pumpStatus) + "}");
+    } else {
+        request->send(400, "application/json", "{\"status\":\"error\",\"message\":\"Missing 'status' parameter\"}");
+    }
+});
+
 
     server.on("/pump/automatic", HTTP_POST, [](AsyncWebServerRequest *request) {
         if (request->hasParam("status", true)) {
@@ -194,37 +215,26 @@ void setupEndpoints() {
 
     // Curtain endpoints
     server.on("/curtain", HTTP_POST, [](AsyncWebServerRequest *request) {
-        if (request->hasParam("action", true)) {
-            String action = request->getParam("action", true)->value();
-            if (action == "open") {
-                curtainAction = true;
-                curtainDirection = 1;
-                playSpeakerNotification("open_curtain");
-                curtainStepsRemaining = 40960;
-                request->send(200, "application/json", "{\"status\":\"success\",\"message\":\"Curtain is opening\"}");
-            } else if (action == "close") {
-                curtainAction = true;
-                playSpeakerNotification("close_curtain");
-                curtainDirection = -1;
-                curtainStepsRemaining = 40960;
-                request->send(200, "application/json", "{\"status\":\"success\",\"message\":\"Curtain is closing\"}");
-            } else {
-                request->send(400, "application/json", "{\"status\":\"error\",\"message\":\"Invalid 'action' value\"}");
-            }
+    if (request->hasParam("action", true)) {
+        String action = request->getParam("action", true)->value();
+        if (action == "open") {
+            curtainStatus = true;
+            curtainAction(1, 8192); 
+            playSpeakerNotification("open_curtain"); 
+            request->send(200, "application/json", "{\"status\":\"success\",\"message\":\"Curtain is opening\"}");
+        } else if (action == "close") {
+            curtainAction(-1, 8192); 
+            curtainStatus = false;
+            playSpeakerNotification("close_curtain"); 
+            request->send(200, "application/json", "{\"status\":\"success\",\"message\":\"Curtain is closing\"}");
         } else {
-            request->send(400, "application/json", "{\"status\":\"error\",\"message\":\"Missing 'action' parameter\"}");
+            request->send(400, "application/json", "{\"status\":\"error\",\"message\":\"Invalid 'action' value\"}");
         }
-    });
+    } else {
+        request->send(400, "application/json", "{\"status\":\"error\",\"message\":\"Missing 'action' parameter\"}");
+    }
+});
 
-    server.on("/curtain/automatic", HTTP_POST, [](AsyncWebServerRequest *request) {
-        if (request->hasParam("status", true)) {
-            String status = request->getParam("status", true)->value();
-            automaticCurtain = (status == "on");
-            request->send(200, "application/json", "{\"status\":\"success\",\"automaticCurtain\":" + String(automaticCurtain) + "}");
-        } else {
-            request->send(400, "application/json", "{\"status\":\"error\",\"message\":\"Missing 'status' parameter\"}");
-        }
-    });
 
     // Servo endpoints
     server.on("/servo", HTTP_POST, [](AsyncWebServerRequest *request) {
@@ -253,6 +263,37 @@ void setupEndpoints() {
             request->send(400, "application/json", "{\"status\":\"error\",\"message\":\"Missing 'direction' parameter\"}");
         }
     });
+    // Bật/tắt đèn LED
+server.on("/led", HTTP_POST, [](AsyncWebServerRequest *request) {
+    if (request->hasParam("status", true)) {
+        String status = request->getParam("status", true)->value();
+        if (status == "on") {
+            ledStatus = true;
+            digitalWrite(LED_PIN, HIGH);
+            request->send(200, "application/json", "{\"status\":\"success\",\"ledStatus\":true}");
+        } else if (status == "off") {
+            ledStatus = false;
+            digitalWrite(LED_PIN, LOW);
+            request->send(200, "application/json", "{\"status\":\"success\",\"ledStatus\":false}");
+        } else {
+            request->send(400, "application/json", "{\"status\":\"error\",\"message\":\"Invalid 'status' value\"}");
+        }
+    } else {
+        request->send(400, "application/json", "{\"status\":\"error\",\"message\":\"Missing 'status' parameter\"}");
+    }
+});
+
+// Tự động bật/tắt đèn LED dựa vào ánh sáng
+server.on("/led/automatic", HTTP_POST, [](AsyncWebServerRequest *request) {
+    if (request->hasParam("status", true)) {
+        String status = request->getParam("status", true)->value();
+        automaticLight = (status == "on");
+        request->send(200, "application/json", "{\"status\":\"success\",\"automaticLight\":" + String(automaticLight) + "}");
+    } else {
+        request->send(400, "application/json", "{\"status\":\"error\",\"message\":\"Missing 'status' parameter\"}");
+    }
+});
+
     server.begin();
 }
 void handleAutomation() {
@@ -284,19 +325,26 @@ void handleAutomation() {
     if (automaticCurtain) {
         int waterLevel = adc1_get_raw(WATER_LEVEL_CHANNEL);
         if (waterLevel > waterLevelThreshold && !curtainStatus) {
-            curtainAction = true;
-            curtainDirection = 1;
-            curtainStepsRemaining = 40960;
-            curtainStatus = true; 
-            playSpeakerNotification("open_curtain");
-        } else if (waterLevel <= waterLevelThreshold && curtainStatus) {
-            curtainAction = true;
-            curtainDirection = -1; 
-            curtainStepsRemaining = 40960;
-            curtainStatus = false; 
+            curtainAction(1, 8192);
+            curtainStatus = false;
             playSpeakerNotification("close_curtain");
+        } else if (waterLevel <= waterLevelThreshold && curtainStatus) {
+            curtainAction( -1, 8192);
+            curtainStatus = true;
+            playSpeakerNotification("open_curtain");
         }
     }
+    if (automaticLight) {
+    int lightLevel = adc1_get_raw(LIGHT_CHANNEL);
+    if (lightLevel < lightThreshold && !ledStatus) {
+        ledStatus = true;
+        digitalWrite(LED_PIN, HIGH); 
+    } else if (lightLevel >= lightThreshold && ledStatus) {
+        ledStatus = false;
+        digitalWrite(LED_PIN, LOW); 
+    }
+  }
+
 }
 
 int readDistance() {
@@ -323,24 +371,12 @@ void playSpeakerNotification(String action) {
     if (index > 0) {
         myDFPlayer.play(index);  
         Serial.println("Playing audio index: " + String(index));
-        lcd.clear();
-        lcd.setCursor(0, 0);
-        lcd.print("Action: ");
-        lcd.print(action);
-        displaySensorData();
     } else {
         Serial.println("No valid audio file for action: " + action);
     }
 }
-void displaySensorData() {
-  lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print("Soil: ");
-  lcd.print(adc1_get_raw(MOISTURE_CHANNEL));
-  lcd.setCursor(0, 1);
-  lcd.print("Temp: ");
-  lcd.print(dht.readTemperature());
-  delay(2000); 
+void curtainAction(int direction, int steps) {
+    curtainStepsRemaining = steps;
+    curtainDirection = direction;
+    curtainStepper.move(curtainDirection * steps);
 }
-
-

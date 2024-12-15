@@ -21,7 +21,7 @@ def fetch_and_store_sensor_data():
         distance = data.get('distance')
         pump_status = data.get('pumpStatus')
         light = data.get('light')
-        rain_status = data.get('waterLevelStatus')
+        rain_status = data.get('waterLevel')
         sound_status = data.get('soundStatus')
         fan_status = data.get('fanStatus')
         curtain_status = data.get('curtainStatus')
@@ -31,8 +31,8 @@ def fetch_and_store_sensor_data():
 
         conn = sqlite3.connect('database.db')
         cursor = conn.cursor()
-        cursor.execute('''INSERT INTO sensor_status (timestamp, humidity, temperature, soil_moisture, distance, pump_status, light, rain_status, sound_status,  fan_status, curtain_status, automatic_fan, automatic_pump, automatic_curtain)
-                          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+        cursor.execute('''INSERT INTO sensor_status (timestamp, humidity, temperature, soil_moisture, distance, pump_status, light, rain_status, sound_status, fan_status, curtain_status, automatic_fan, automatic_pump, automatic_curtain)
+                          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
                        (timestamp, humidity, temperature, soil_moisture, distance, pump_status, light, rain_status,
                         sound_status, fan_status, curtain_status, automatic_fan, automatic_pump, automatic_curtain))
         conn.commit()

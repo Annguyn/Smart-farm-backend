@@ -4,10 +4,6 @@ import sqlite3
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 import os
-from api.pump_api import pumpStatus
-from api.mode_api import automaticFan, automaticPump, automaticCurtain
-from api.fan_api import fanStatus
-from api.curtain_api import curtainStatus
 
 sensor_api = Blueprint('sensor_api', __name__)
 load_dotenv()
@@ -20,16 +16,7 @@ def get_data():
     try:
         response = requests.get(f"http://{ESP32_IP}/data")
         response.raise_for_status()
-        print(f"Pump status : {pumpStatus}")
         data = response.json()
-        data['deviceStatus'] = {
-            'pumpStatus': current_app.config['pumpStatus'],
-            'fanStatus': current_app.config['fanStatus'],
-            'curtainStatus': current_app.config['curtainStatus'],
-            'automaticFan': current_app.config['automaticFan'],
-            'automaticPump': current_app.config['automaticPump'],
-            'automaticCurtain': current_app.config['automaticCurtain']
-        }
         return jsonify(data), 200
     except requests.exceptions.RequestException as e:
         return jsonify({'error': str(e)}), 500
@@ -77,7 +64,7 @@ def statistics():
             'distance': int(row[5]),
             'pump_status': row[6],
             'light': int(row[7]),
-            'rain_status': int(row[8]),
+            'waterLevel': int(row[8]),
             'sound_status': int(row[9]),
             'fanStatus': int(row[10]),
             'curtainStatus': int(row[11]),

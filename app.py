@@ -34,17 +34,10 @@ ESP32_CAM_URL = os.getenv('ESP32_CAM_URL')
 ESP32_IP = os.getenv('ESP32_IP')
 speaker_status = False
 
-app.config['pumpStatus'] = False
-app.config['fanStatus'] = 0
-app.config['curtainStatus'] = False
-app.config['automaticFan'] = False
-app.config['automaticPump'] = False
-app.config['automaticCurtain'] = False
-
 register_blueprints(app)
 
 scheduler = BackgroundScheduler()
-scheduler.add_job(fetch_and_store_sensor_data, 'interval', minutes=15)
+scheduler.add_job(fetch_and_store_sensor_data, 'interval', seconds=60)
 scheduler.start()
 logging.info("Scheduler started.")
 

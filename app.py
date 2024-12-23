@@ -25,6 +25,9 @@ def register_mdns_service(service_name, service_type, port):
     zeroconf.register_service(service_info)
     return zeroconf
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+
 app = Flask(__name__)
 
 setup_database()

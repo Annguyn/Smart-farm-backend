@@ -7,10 +7,10 @@ mode_api = Blueprint('mode_api', __name__)
 load_dotenv()
 ESP32_IP = os.getenv('ESP32_IP')
 
-@mode_api.route("/fan/mode/automatic", methods=["POST"])
+@mode_api.route("/dc/mode/automatic", methods=["POST"])
 def set_fan_automatic():
     try:
-        url = f"http://{ESP32_IP}/fan/automatic"
+        url = f"http://{ESP32_IP}/dc/automatic"
         payload = {'status': 'on'}
         response = requests.post(url, data=payload)
         response.raise_for_status()
@@ -21,10 +21,10 @@ def set_fan_automatic():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@mode_api.route("/fan/mode/manual", methods=["POST"])
+@mode_api.route("/dc/mode/manual", methods=["POST"])
 def set_fan_manual():
     try:
-        url = f"http://{ESP32_IP}/fan/automatic"
+        url = f"http://{ESP32_IP}/dc/automatic"
         payload = {'status': 'off'}
         response = requests.post(url, data=payload)
         response.raise_for_status()
@@ -35,10 +35,10 @@ def set_fan_manual():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@mode_api.route("/pump/mode/automatic", methods=["POST"])
+@mode_api.route("/relay/mode/automatic", methods=["POST"])
 def set_pump_automatic():
     try:
-        url = f"http://{ESP32_IP}/pump/automatic"
+        url = f"http://{ESP32_IP}/relay/automatic"
         payload = {'status': 'on'}
         response = requests.post(url, data=payload)
         response.raise_for_status()
@@ -49,10 +49,10 @@ def set_pump_automatic():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@mode_api.route("/pump/mode/manual", methods=["POST"])
+@mode_api.route("/relay/mode/manual", methods=["POST"])
 def set_pump_manual():
     try:
-        url = f"http://{ESP32_IP}/pump/automatic"
+        url = f"http://{ESP32_IP}/relay/automatic"
         payload = {'status': 'off'}
         response = requests.post(url, data=payload)
         response.raise_for_status()
@@ -63,10 +63,10 @@ def set_pump_manual():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@mode_api.route("/curtain/mode/automatic", methods=["POST"])
+@mode_api.route("/stepper/mode/automatic", methods=["POST"])
 def set_curtain_automatic():
     try:
-        url = f"http://{ESP32_IP}/curtain/automatic"
+        url = f"http://{ESP32_IP}/stepper/automatic"
         payload = {'status': 'on'}
         response = requests.post(url, data=payload)
         response.raise_for_status()
@@ -77,10 +77,10 @@ def set_curtain_automatic():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@mode_api.route("/curtain/mode/manual", methods=["POST"])
+@mode_api.route("/stepper/mode/manual", methods=["POST"])
 def set_curtain_manual():
     try:
-        url = f"http://{ESP32_IP}/curtain/automatic"
+        url = f"http://{ESP32_IP}/stepper/automatic"
         payload = {'status': 'off'}
         response = requests.post(url, data=payload)
         response.raise_for_status()
@@ -94,7 +94,7 @@ def set_curtain_manual():
 @mode_api.route("/light/mode/automatic", methods=["POST"])
 def set_led_automatic():
     try:
-        url = f"http://{ESP32_IP}/led/automatic"
+        url = f"http://{ESP32_IP}/light/automatic"
         payload = {'status': 'on'}
         response = requests.post(url, data=payload)
         response.raise_for_status()
@@ -108,7 +108,7 @@ def set_led_automatic():
 @mode_api.route("/light/mode/manual", methods=["POST"])
 def set_led_manual():
     try:
-        url = f"http://{ESP32_IP}/led/automatic"
+        url = f"http://{ESP32_IP}/light/automatic"
         payload = {'status': 'off'}
         response = requests.post(url, data=payload)
         response.raise_for_status()

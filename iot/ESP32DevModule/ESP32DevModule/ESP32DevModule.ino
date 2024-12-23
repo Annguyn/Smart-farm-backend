@@ -6,7 +6,6 @@
 #include <HTTPClient.h>
 #include <ESP32Servo.h>
 #include <ESPmDNS.h>
-// #include <Stepper.h>
 #include <driver/adc.h> 
 #include <AccelStepper.h>
 #include "esp_task_wdt.h"
@@ -32,9 +31,10 @@
 #define STEPS_PER_REV 2048
 #define LED_PIN 23 
 
+
 bool ledStatus = false;
 bool automaticLight = false;
-int lightThreshold = 1500;
+int lightThreshold = 2000;
 
 DHT dht(DHTPIN, DHTTYPE);
 DFRobotDFPlayerMini myDFPlayer;
@@ -46,8 +46,8 @@ Servo servo1, servo2;
 AccelStepper curtainStepper(AccelStepper::FULL4WIRE, 25, 27, 26, 13);
 // Stepper curtainStepper(STEPS_PER_REV, 25, 26, 27, 13);
 
-const char *ssid = "ASPIRE";
-const char *password = "12345678";
+const char *ssid = "C128-1";
+const char *password = "sensei_1234";
 int curtainDirection = 0; // 1 for open, -1 for close
 bool pumpStatus = false, curtainStatus = false;
 int fanStatus = 0;
@@ -76,8 +76,8 @@ void setup() {
   void handleCurtain(bool status, AsyncWebServerRequest *request = nullptr);
 
   dht.begin();
-  servo1.attach(SERVO_PIN1, 500, 2400);
-  servo2.attach(SERVO_PIN2, 500, 2400);
+  servo1.attach(SERVO_PIN1); 
+  servo2.attach(SERVO_PIN2); 
   // curtainStepper.setSpeed(15);
   pinMode(RELAY_PUMP_PIN, OUTPUT);
   pinMode(FAN_PWM_PIN, OUTPUT);
@@ -102,15 +102,14 @@ void setup() {
     };
     esp_task_wdt_init(&wdtConfig);
     esp_task_wdt_add(NULL); 
-
   pinMode(TRIG_PIN, OUTPUT);
   pinMode(ECHO_PIN, INPUT);
 
   if (MDNS.begin("anfarm32")) {
     Serial.println("mDNS responder started at http://anfarm32.local");
   }
-  curtainStepper.setMaxSpeed(2000);
-  curtainStepper.setAcceleration(1000); 
+  curtainStepper.setMaxSpeed(1000);
+  curtainStepper.setAcceleration(200); 
   adc1_config_width(ADC_WIDTH_BIT_12); 
   adc1_config_channel_atten(MOISTURE_CHANNEL, ADC_ATTEN_DB_11);
   adc1_config_channel_atten(LIGHT_CHANNEL, ADC_ATTEN_DB_11);
@@ -173,7 +172,7 @@ void setupEndpoints() {
         }
     });
 
-    server.on("/fan/automatic", HTTP_POST, [](AsyncWebServerRequest *request) {
+    server.on("/dc/automatic", HTTP_POST, [](AsyncWebServerRequest *request) {
         if (request->hasParam("status", true)) {
             String status = request->getParam("status", true)->value();
             automaticFan = (status == "on");
@@ -203,7 +202,7 @@ void setupEndpoints() {
 });
 
 
-    server.on("/pump/automatic", HTTP_POST, [](AsyncWebServerRequest *request) {
+    server.on("/relay/automatic", HTTP_POST, [](AsyncWebServerRequest *request) {
         if (request->hasParam("status", true)) {
             String status = request->getParam("status", true)->value();
             automaticPump = (status == "on");
@@ -234,7 +233,16 @@ void setupEndpoints() {
         request->send(400, "application/json", "{\"status\":\"error\",\"message\":\"Missing 'action' parameter\"}");
     }
 });
-
+ server.on("/stepper/automatic", HTTP_POST, [](AsyncWebServerRequest *request) {
+        if (request->hasParam("status", true)) {
+            String status = request->getParam("status", true)->value();
+            automaticCurtain = (status == "on");
+            playSpeakerNotification(automaticCurtain ? "open_curtain" : "close_curtain");
+            request->send(200, "application/json", "{\"status\":\"success\",\"automaticCurtain\":" + String(automaticCurtain) + "}");
+        } else {
+            request->send(400, "application/json", "{\"status\":\"error\",\"message\":\"Missing 'status' parameter\"}");
+        }
+    });
 
     // Servo endpoints
     server.on("/servo", HTTP_POST, [](AsyncWebServerRequest *request) {
@@ -284,7 +292,7 @@ server.on("/led", HTTP_POST, [](AsyncWebServerRequest *request) {
 });
 
 // Tự động bật/tắt đèn LED dựa vào ánh sáng
-server.on("/led/automatic", HTTP_POST, [](AsyncWebServerRequest *request) {
+server.on("/light/automatic", HTTP_POST, [](AsyncWebServerRequest *request) {
     if (request->hasParam("status", true)) {
         String status = request->getParam("status", true)->value();
         automaticLight = (status == "on");
@@ -293,7 +301,30 @@ server.on("/led/automatic", HTTP_POST, [](AsyncWebServerRequest *request) {
         request->send(400, "application/json", "{\"status\":\"error\",\"message\":\"Missing 'status' parameter\"}");
     }
 });
-
+server.on("/setThreshold", HTTP_POST, [](AsyncWebServerRequest *request) {
+        if (request->hasParam("type", true) && request->hasParam("value", true)) {
+            String type = request->getParam("type", true)->value();
+            int value = request->getParam("value", true)->value().toInt();
+            if (type == "soilMoisture") {
+                soilMoistureThreshold = value;
+            } else if (type == "temperatureHigh") {
+                temperatureHighThreshold = value;
+            } else if (type == "temperatureLow") {
+                temperatureLowThreshold = value;
+            } else if (type == "waterLevel") {
+                waterLevelThreshold = value;
+            } else if (type == "light") {
+                lightThreshold = value;
+            } else {
+                request->send(400, "application/json", "{\"status\":\"error\",\"message\":\"Invalid threshold type\"}");
+                return;
+            }
+            String response = "{\"status\":\"success\",\"" + type + "Threshold\":" + String(value) + "}";
+            request->send(200, "application/json", response);
+        } else {
+            request->send(400, "application/json", "{\"status\":\"error\",\"message\":\"Missing 'type' or 'value' parameter\"}");
+        }
+    });
     server.begin();
 }
 void handleAutomation() {
@@ -336,10 +367,10 @@ void handleAutomation() {
     }
     if (automaticLight) {
     int lightLevel = adc1_get_raw(LIGHT_CHANNEL);
-    if (lightLevel < lightThreshold && !ledStatus) {
+    if (lightLevel > lightThreshold) {
         ledStatus = true;
         digitalWrite(LED_PIN, HIGH); 
-    } else if (lightLevel >= lightThreshold && ledStatus) {
+    } else if (lightLevel <= lightThreshold ) {
         ledStatus = false;
         digitalWrite(LED_PIN, LOW); 
     }

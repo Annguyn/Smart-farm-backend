@@ -9,6 +9,9 @@ from api.speaker_api import speaker_api
 from api.esp32_cam_api import esp32_cam_api
 from api.sensor_api import sensor_api
 from api.servo_api import servo_api
+from api.threshold_api import threshold_api
+
+
 def register_blueprints(app: Flask):
     app.register_blueprint(fan_api)
     app.register_blueprint(pump_api)
@@ -19,3 +22,4 @@ def register_blueprints(app: Flask):
     app.register_blueprint(servo_api)
     app.register_blueprint(mode_api)
     app.register_blueprint(led_api)
+    app.register_blueprint(threshold_api)

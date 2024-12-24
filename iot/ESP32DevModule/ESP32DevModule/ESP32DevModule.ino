@@ -136,7 +136,6 @@ void loop() {
 }
 
 void setupEndpoints() {
-    // Endpoint to get data
     server.on("/data", HTTP_GET, [](AsyncWebServerRequest *request) {
         String response = "{";
         response += "\"soilMoisture\":" + String(adc1_get_raw(MOISTURE_CHANNEL)) + ",";
@@ -328,16 +327,15 @@ server.on("/setThreshold", HTTP_POST, [](AsyncWebServerRequest *request) {
     server.begin();
 }
 void handleAutomation() {
-    // Automatic Pump Control
     if (automaticPump) {
         int soilMoisture = adc1_get_raw(MOISTURE_CHANNEL);
         if (soilMoisture > soilMoistureThreshold && !pumpStatus) {
-            digitalWrite(RELAY_PUMP_PIN, HIGH); // Turn the pump ON
-            pumpStatus = true;                 // Update pump status
+            digitalWrite(RELAY_PUMP_PIN, HIGH); 
+            pumpStatus = true;                 
             playSpeakerNotification("low_humidity");
         } else if (soilMoisture <= soilMoistureThreshold && pumpStatus) {
-            digitalWrite(RELAY_PUMP_PIN, LOW); // Turn the pump OFF
-            pumpStatus = false;                // Update pump status
+            digitalWrite(RELAY_PUMP_PIN, LOW); 
+            pumpStatus = false;             
             playSpeakerNotification("high_humidity");
         }
     }

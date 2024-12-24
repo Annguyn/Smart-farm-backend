@@ -6,11 +6,10 @@
   <component name="ChangeListManager">
     <list default="true" id="f1d9bdd8-956d-43d4-82e9-bd90d28788f0" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api/mode_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/mode_api.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api/servo_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/servo_api.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/threshold_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/threshold_api.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/database.db" beforeDir="false" afterPath="$PROJECT_DIR$/database.db" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/iot/ESP32DevModule/ESP32DevModule/ESP32DevModule.ino" beforeDir="false" afterPath="$PROJECT_DIR$/iot/ESP32DevModule/ESP32DevModule/ESP32DevModule.ino" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/iot/esp32cam/esp32cam.ino" beforeDir="false" afterPath="$PROJECT_DIR$/iot/esp32cam/esp32cam.ino" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -212,6 +211,9 @@
       <workItem from="1734355566444" duration="18000" />
       <workItem from="1734786236681" duration="5311000" />
       <workItem from="1734792433358" duration="7000" />
+      <workItem from="1734962779494" duration="2003000" />
+      <workItem from="1735042660562" duration="1564000" />
+      <workItem from="1735044904228" duration="2721000" />
     </task>
     <servers />
   </component>

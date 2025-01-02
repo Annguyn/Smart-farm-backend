@@ -6,10 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="f1d9bdd8-956d-43d4-82e9-bd90d28788f0" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api/threshold_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/threshold_api.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/sensor_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/sensor_api.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/database.db" beforeDir="false" afterPath="$PROJECT_DIR$/database.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/iot/ESP32DevModule/ESP32DevModule/ESP32DevModule.ino" beforeDir="false" afterPath="$PROJECT_DIR$/iot/ESP32DevModule/ESP32DevModule/ESP32DevModule.ino" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/iot/esp32cam/esp32cam.ino" beforeDir="false" afterPath="$PROJECT_DIR$/iot/esp32cam/esp32cam.ino" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -213,7 +211,20 @@
       <workItem from="1734792433358" duration="7000" />
       <workItem from="1734962779494" duration="2003000" />
       <workItem from="1735042660562" duration="1564000" />
-      <workItem from="1735044904228" duration="2721000" />
+      <workItem from="1735044904228" duration="3039000" />
+      <workItem from="1735058224408" duration="2530000" />
+      <workItem from="1735301562183" duration="16000" />
+      <workItem from="1735468523430" duration="721000" />
+      <workItem from="1735481464963" duration="5123000" />
+      <workItem from="1735543190075" duration="553000" />
+      <workItem from="1735549567700" duration="1721000" />
+      <workItem from="1735557448382" duration="2109000" />
+      <workItem from="1735628923739" duration="2642000" />
+      <workItem from="1735648131339" duration="939000" />
+      <workItem from="1735804873711" duration="3046000" />
+      <workItem from="1735820842782" duration="997000" />
+      <workItem from="1735854771560" duration="1195000" />
+      <workItem from="1735858492644" duration="862000" />
     </task>
     <servers />
   </component>
@@ -235,6 +246,6 @@
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/SmartFarmBackend$SmartFarmBackend.coverage" NAME="SmartFarmBackend Coverage Results" MODIFIED="1734342914627" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/SmartFarmBackend$SmartFarmBackend.coverage" NAME="SmartFarmBackend Coverage Results" MODIFIED="1735820872945" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
